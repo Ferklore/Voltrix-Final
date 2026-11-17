@@ -277,6 +277,8 @@ export const typeDefs = /* GraphQL */ `
     pagos: [Pago!]!
     "Se genera al pagar. null si el pedido no está pagado."
     prefactura: Prefactura
+    "El cliente pidió factura a su nombre (si no, sale a público en general)."
+    requiereFactura: Boolean!
     "Historial de estados (documento del pedido en MongoDB)."
     historial: [CambioEstado!]!
     "Dirección de envío del pedido (la que tenía el cliente al comprar)."
@@ -463,8 +465,10 @@ export const typeDefs = /* GraphQL */ `
     guardarDatosFiscales(datos: DatosFiscalesInput!): Usuario!
     "Borra los datos fiscales: las prefacturas salen a público en general."
     borrarDatosFiscales: Usuario!
-    "Dueño del pedido o ADMIN. Vuelve a generar la prefactura con los datos fiscales actuales."
+    "Dueño del pedido o ADMIN. Vuelve a generar la prefactura (con los datos fiscales actuales si pidió factura)."
     regenerarPrefactura(pedidoId: ID!): Prefactura!
+    "Dueño del pedido. Pasa la prefactura a su nombre (necesita datos fiscales guardados)."
+    facturarAMiNombre(pedidoId: ID!): Prefactura!
     "Solo ADMIN."
     crearProducto(datos: ProductoInput!): Producto!
     "Solo ADMIN."
@@ -472,7 +476,7 @@ export const typeDefs = /* GraphQL */ `
     "Solo ADMIN."
     eliminarProducto(id: ID!): Boolean!
     "El pedido queda a nombre del usuario del token."
-    crearPedido(items: [ItemPedidoInput!]!): Pedido!
+    crearPedido(items: [ItemPedidoInput!]!, requiereFactura: Boolean = false): Pedido!
     "Solo ADMIN. A CANCELADO devuelve el stock."
     cambiarStatusPedido(id: ID!, status: StatusPedido!): Pedido
     "Solo ADMIN. No puedes cambiar tu propio rol."

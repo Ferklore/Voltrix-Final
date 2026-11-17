@@ -3,12 +3,13 @@ import { despachar, dinero, useCarrito } from '../lib/carrito.js'
 import { gql, useSesion } from '../lib/sesion.js'
 import PagarPedido from './PagarPedido.jsx'
 import Mapa from './Mapa.jsx'
+import DatosFiscales from './DatosFiscales.jsx'
 
 const DIRECCION = `{ yo { id direccion { calle colonia ciudad estado codigoPostal lat lng } } }`
 
 const CREAR_PEDIDO = `
-  mutation ($items: [ItemPedidoInput!]!) {
-    crearPedido(items: $items) { id total status fecha }
+  mutation ($items: [ItemPedidoInput!]!, $requiereFactura: Boolean) {
+    crearPedido(items: $items, requiereFactura: $requiereFactura) { id total status fecha requiereFactura }
   }
 `
 
@@ -20,6 +21,9 @@ export default function Checkout() {
   const [error, setError] = useState('')
   // undefined = cargando; null = no tiene dirección.
   const [direccion, setDireccion] = useState(undefined)
+  // Factura opcional: si la pide, hacen falta sus datos fiscales.
+  const [quiereFactura, setQuiereFactura] = useState(false)
+  const [datosFiscales, setDatosFiscales] = useState(null)
 
   useEffect(() => {
     if (sesion === null) location.replace('/login?siguiente=/checkout')
@@ -41,6 +45,7 @@ export default function Checkout() {
     try {
       const { crearPedido } = await gql(CREAR_PEDIDO, {
         items: items.map((it) => ({ productoId: it.id, cantidad: it.cantidad })),
+        requiereFactura: quiereFactura,
       })
       setPedido(crearPedido)
       despachar({ type: 'VACIAR' })
@@ -57,6 +62,7 @@ export default function Checkout() {
       <section className="panel checkout-confirmado">
         <h1>Pedido #{pedido.id} registrado</h1>
         <p>Total: {dinero(pedido.total)}. Elige cómo quieres pagar:</p>
+        {pedido.requiereFactura && <p className="form-alterno">Tu prefactura saldrá a tu nombre y la recibirás por correo al pagar.</p>}
         <PagarPedido pedidoId={pedido.id} total={pedido.total} email={sesion.usuario?.email} />
         <p className="aviso">
           Si prefieres pagar después, tu pedido queda apartado en <a href="/cuenta">Mis pedidos</a>.
@@ -109,12 +115,28 @@ export default function Checkout() {
           </>
         )}
       </section>
+      <section className="panel envio">
+        <label className="filtro-check casilla-factura">
+          <input type="checkbox" checked={quiereFactura} onChange={(e) => setQuiereFactura(e.target.checked)} />
+          ¿Necesitas factura?
+        </label>
+        {quiereFactura ? (
+          <DatosFiscales modo="checkout" onCambio={setDatosFiscales} />
+        ) : (
+          <p className="form-alterno">Si no la necesitas, tu comprobante sale a público en general.</p>
+        )}
+      </section>
       {error && (
         <p className="error" role="alert">
           {error}
         </p>
       )}
-      <button className="btn-primario" type="button" disabled={enviando || !direccion} onClick={confirmar}>
+      <button
+        className="btn-primario"
+        type="button"
+        disabled={enviando || !direccion || (quiereFactura && !datosFiscales)}
+        onClick={confirmar}
+      >
         {enviando ? 'Registrando pedido…' : 'Continuar al pago'}
       </button>
     </section>

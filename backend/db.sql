@@ -173,6 +173,9 @@ CREATE INDEX IF NOT EXISTS lista_deseos_producto_id_idx ON lista_deseos (product
 ALTER TABLE usuario ADD COLUMN IF NOT EXISTS lat double precision;
 ALTER TABLE usuario ADD COLUMN IF NOT EXISTS lng double precision;
 
+-- Factura opcional (igual que migraciones/010-factura-opcional.sql).
+ALTER TABLE pedido ADD COLUMN IF NOT EXISTS requiere_factura boolean NOT NULL DEFAULT false;
+
 INSERT INTO categoria (id, nombre, descripcion) VALUES
 (1, 'Microcontroladores', 'Placas ESP32, Arduino, STM32'),
 (2, 'Sensores', 'Sensores de temperatura, humedad, gas'),

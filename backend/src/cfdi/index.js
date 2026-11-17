@@ -33,7 +33,10 @@ export async function generarPrefactura(pedidoId) {
     pool.query(`SELECT proveedor FROM pago WHERE pedido_id = $1 AND estado = 'APROBADO' ORDER BY id DESC LIMIT 1`, [pedido.id]),
   ])
 
-  const comprobante = armarComprobante({ pedido, renglones, usuario, proveedorPago: pago?.proveedor })
+  // Sin "¿Necesitas factura?" sale a público en general aunque el cliente
+  // tenga datos fiscales guardados.
+  const receptor = pedido.requiere_factura ? usuario : null
+  const comprobante = armarComprobante({ pedido, renglones, usuario: receptor, proveedorPago: pago?.proveedor })
   const xml = aXml(comprobante)
   const errores = await validar(xml, comprobante)
   if (errores.length) console.warn(`[cfdi] prefactura del pedido ${pedido.id} con errores:`, errores)

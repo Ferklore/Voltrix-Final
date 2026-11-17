@@ -216,6 +216,15 @@ export const resolvers = {
       return generarPrefactura(pedido.id)
     },
 
+    facturarAMiNombre: async (_, { pedidoId }, ctx) => {
+      const usuario = requiereUsuario(ctx)
+      const pedido = await uno('SELECT * FROM pedido WHERE id = $1', [pedidoId])
+      if (!pedido || pedido.usuario_id !== usuario.id) throw errorDeNegocio('No encontramos ese pedido.', 'PEDIDO_NO_EXISTE')
+      await exigirDatosFiscales(usuario.id)
+      await pool.query('UPDATE pedido SET requiere_factura = true WHERE id = $1', [pedido.id])
+      return generarPrefactura(pedido.id)
+    },
+
     crearProducto: async (_, { datos }, ctx) => {
       requiereAdmin(ctx)
       const { nombre, precio, imagen, especificaciones, categoriaId, stock, precioAnterior, claveProdServ } = validarProducto(datos)
@@ -350,12 +359,13 @@ export const resolvers = {
       confirmarPago(requiereUsuario(ctx), pedidoId, proveedor, referencia),
 
     // Registra el pedido, sus renglones y descuenta stock en una transacción.
-    crearPedido: async (_, { items }, ctx) => {
+    crearPedido: async (_, { items, requiereFactura }, ctx) => {
       const usuario = requiereUsuario(ctx)
       if (!items.length) throw errorDeNegocio('Tu carrito está vacío.', 'CARRITO_VACIO')
       if (!(await uno('SELECT 1 AS si FROM usuario WHERE id = $1 AND calle IS NOT NULL', [usuario.id]))) {
         throw errorDeNegocio('Captura tu dirección de envío en "Mi cuenta" antes de comprar.', 'SIN_DIRECCION')
       }
+      if (requiereFactura) await exigirDatosFiscales(usuario.id)
 
       // Un producto repetido suma cantidades antes de validar contra el stock.
       const pedidas = new Map()
@@ -395,8 +405,8 @@ export const resolvers = {
         }
 
         const { rows } = await conn.query(
-          'INSERT INTO pedido (total, usuario_id) VALUES ($1, $2) RETURNING *',
-          [Math.round(total * 100) / 100, usuario.id]
+          'INSERT INTO pedido (total, usuario_id, requiere_factura) VALUES ($1, $2, $3) RETURNING *',
+          [Math.round(total * 100) / 100, usuario.id, Boolean(requiereFactura)]
         )
         const pedido = rows[0]
         for (const d of detalles) {
@@ -500,6 +510,7 @@ export const resolvers = {
     // Quien ve el pedido (dueño o ADMIN) ve su prefactura.
     prefactura: (p) => prefacturaDe(p),
     historial: (p) => historialPedido(p.id),
+    requiereFactura: (p) => Boolean(p.requiere_factura),
     // La del documento del pedido (Mongo); si no hay, la dirección actual del cliente.
     envio: async (p) => {
       const guardada = await direccionDePedido(p.id)
@@ -538,6 +549,13 @@ export const resolvers = {
   DetallePedido: {
     producto: (d) => uno('SELECT * FROM producto WHERE id = $1', [d.producto_id]),
   },
+}
+
+// Para facturar a nombre del cliente hacen falta sus datos fiscales.
+async function exigirDatosFiscales(usuarioId) {
+  if (!(await uno('SELECT 1 AS si FROM usuario WHERE id = $1 AND rfc IS NOT NULL', [usuarioId]))) {
+    throw errorDeNegocio('Para facturar a tu nombre, primero captura tus datos fiscales.', 'SIN_DATOS_FISCALES')
+  }
 }
 
 const sinMongo = () =>

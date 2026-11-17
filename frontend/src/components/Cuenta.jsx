@@ -13,6 +13,7 @@ const MIS_PEDIDOS = `{
     pedidos {
       id fecha total status
       pagos { proveedor estado }
+      requiereFactura
       prefactura { serie folio valida receptorRfc }
       detalles { cantidad subtotal producto { id nombre } }
     }
@@ -20,6 +21,7 @@ const MIS_PEDIDOS = `{
 }`
 
 const REGENERAR = `mutation ($id: ID!) { regenerarPrefactura(pedidoId: $id) { folio } }`
+const FACTURAR = `mutation ($id: ID!) { facturarAMiNombre(pedidoId: $id) { folio } }`
 const CANCELAR = `mutation ($id: ID!) { cancelarPedido(id: $id) { id } }`
 const VERIFICAR_MP = `mutation ($id: ID!) { confirmarPago(pedidoId: $id, proveedor: MERCADOPAGO) { estado mensaje } }`
 const PROVEEDORES = { PAYPAL: 'PayPal', MERCADOPAGO: 'Mercado Pago' }
@@ -79,14 +81,17 @@ export default function Cuenta() {
   const descargar = (id, formato) =>
     descargarPrefactura(id, formato).catch((err) => setError(err.message))
 
-  const regenerar = async (id) => {
+  // Pedido que salió a público en general -> pasarlo a su nombre; si ya era a
+  // su nombre, regenerarlo con sus datos fiscales actuales.
+  const facturar = async (p) => {
     setAviso('')
     try {
-      await gql(REGENERAR, { id })
-      setAviso(`Prefactura del pedido #${id} generada con tus datos fiscales actuales.`)
+      await gql(p.requiereFactura ? REGENERAR : FACTURAR, { id: p.id })
+      setAviso(`Prefactura del pedido #${p.id} generada a tu nombre con tus datos fiscales actuales.`)
       recargar()
     } catch (err) {
-      setError(err.codigo ? err.message : 'No pudimos regenerar la prefactura.')
+      // Sin datos fiscales: el mensaje del backend dice qué hacer.
+      setAviso(err.codigo ? err.message : 'No pudimos generar la prefactura.')
     }
   }
 
@@ -136,7 +141,9 @@ export default function Cuenta() {
                   </span>
                   <button className="btn-texto" type="button" onClick={() => descargar(p.id, 'pdf')}>Descargar PDF</button>
                   <button className="btn-texto" type="button" onClick={() => descargar(p.id, 'xml')}>Descargar XML</button>
-                  <button className="btn-texto" type="button" onClick={() => regenerar(p.id)}>Regenerar con mis datos</button>
+                  <button className="btn-texto" type="button" onClick={() => facturar(p)}>
+                    {p.requiereFactura ? 'Regenerar con mis datos' : 'Facturar a mi nombre'}
+                  </button>
                 </div>
               )}
               {p.status === 'PENDIENTE' && (

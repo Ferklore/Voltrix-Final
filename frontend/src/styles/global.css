@@ -1893,3 +1893,53 @@ a.btn-texto {
   margin-top: 8px;
   min-width: 260px;
 }
+
+/* --- Facturación opcional --- */
+.facturacion {
+  margin-bottom: 24px;
+  padding: 18px 26px;
+}
+
+.app-main .facturacion h2 {
+  margin-top: 0;
+}
+
+.facturacion-linea {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.facturacion-etiqueta {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+
+.facturacion-linea .pedido-acciones {
+  margin: 0 0 0 auto;
+}
+
+.casilla-factura {
+  font-weight: 600;
+}
+
+.facturacion-checkout {
+  margin-top: 12px;
+}
+
+.form-fiscal {
+  max-width: 520px;
+  margin: 0;
+}
+
+.btn-enlace {
+  padding: 0;
+  color: var(--azul);
+  text-decoration: underline;
+  font: inherit;
+}

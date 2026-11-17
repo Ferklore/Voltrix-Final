@@ -75,6 +75,7 @@ migraciones/            cambios de esquema para una base existente, sin borrar n
   007-respaldo-prefactura.sql  dónde quedó la copia de la prefactura en Cloudinary
   008-lista-deseos.sql  lista de deseos (usuario, producto)
   009-ubicacion.sql     lat/lng de la dirección de envío
+  010-factura-opcional.sql  pedido.requiere_factura ("¿Necesitas factura?")
 scripts/migrar.mjs      corre todas las migraciones en orden (npm run migrar)
 scripts/crear-admin.mjs
 test/api.test.js        prueba de punta a punta (OAuth, permisos, pedidos)
@@ -89,6 +90,7 @@ test/mouser.test.js     Mouser simulado: petición, normalización, precios, cac
 test/mapas.test.js      HERE simulado: consulta, coordenadas en México, caché, pin del cliente
 test/mcp.test.js        cliente MCP real contra /mcp y por stdio (backend corriendo)
 test/deseos.test.js     lista de deseos: agregar, sin duplicados, privada, quitar (backend corriendo)
+test/facturacion.test.js factura opcional: público en general vs. RFC del cliente (backend + admin)
 ```
 
 ## Frontend (`frontend/`)
@@ -255,9 +257,12 @@ Cuando un pedido queda **PAGADO** el backend genera su prefactura con la
 estructura del CFDI del SAT (Anexo 20): `Comprobante`, `InformacionGlobal`
 (solo público en general), `Emisor`, `Receptor`, `Conceptos` e `Impuestos`.
 
-- **Receptor:** si el cliente capturó sus datos fiscales en *Mi cuenta* (RFC,
-  razón social, CP, régimen y uso del CFDI) sale a su nombre; si no, a
-  `XAXX010101000 PUBLICO EN GENERAL`. Con *Regenerar* se rehace con los datos actuales.
+- **Receptor (factura opcional):** por defecto sale a `XAXX010101000 PUBLICO
+  EN GENERAL`. Solo si el cliente marca **"¿Necesitas factura?"** en el
+  checkout sale a su nombre con sus datos fiscales (RFC, razón social, CP,
+  régimen y uso del CFDI), que captura ahí mismo o en *Mi cuenta → Facturación*.
+  El pedido lo recuerda (`requiere_factura`). Después de comprar, "Facturar a
+  mi nombre" pasa un pedido a su RFC, y "Regenerar" la rehace con datos actualizados.
 - **Importes:** los precios ya traen IVA; cada concepto se desglosa a 6
   decimales para que el total sea exactamente lo cobrado.
 - **Validación:** XSD (`src/cfdi/esquema/cfdi.xsd`, con libxml2 en WebAssembly)
