@@ -8,6 +8,9 @@ import WebSocket from 'ws'
 const DIRECCION = { calle: 'Av. Siempre Viva 742', colonia: 'Centro', ciudad: 'Guadalajara', estado: 'Jalisco', codigoPostal: '44100' }
 
 const BASE = process.env.BASE || 'http://localhost:4000'
+// Admin de prueba (el CI lo crea con npm run crear-admin).
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@voltrix.test'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'AdminPrueba123'
 
 const token = (params) =>
   fetch(`${BASE}/oauth/token`, {
@@ -55,7 +58,7 @@ function escuchar(cliente, query) {
 const PEDIDOS = 'subscription { pedidoCambio { tipo pedido { id status total } } }'
 
 test('solo un ADMIN puede suscribirse y recibe los cambios de pedidos en vivo', async (t) => {
-  const admin = await token({ grant_type: 'password', username: 'admin@voltrix.test', password: 'AdminPrueba123' })
+  const admin = await token({ grant_type: 'password', username: ADMIN_EMAIL, password: ADMIN_PASSWORD })
   if (admin.error) return t.skip('no existe admin@voltrix.test')
 
   const email = `vivo${Date.now()}@voltrix.test`

@@ -62,9 +62,9 @@ jobs:
       BASE: http://localhost:4000
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -99,11 +99,22 @@ jobs:
           echo "El backend no arrancó:"; cat backend.log; exit 1
 
       - name: Pruebas de punta a punta (API, Subscriptions, MCP)
-        run: npm run test:e2e
+        run: |
+          set +e
+          npm run test:e2e 2>&1 | tee e2e.log
+          estado=${PIPESTATUS[0]}
+          if [ "$estado" -ne 0 ]; then
+            # Cada prueba fallida y su error, como anotación del job.
+            grep -nE "^\s*(not ok|✖)|Error|expected|actual|AssertionError" e2e.log | head -40 \
+              | sed 's/%/%25/g' | while IFS= read -r linea; do echo "::error title=Prueba e2e::$linea"; done
+          fi
+          exit $estado
 
       - name: Log del backend
         if: failure()
-        run: cat backend.log
+        run: |
+          cat backend.log
+          tail -20 backend.log | sed 's/%/%25/g' | while IFS= read -r linea; do echo "::warning title=Backend::$linea"; done
 
   frontend:
     name: Frontend · probar y compilar
@@ -113,9 +124,9 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
@@ -156,9 +167,9 @@ jobs:
       NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
       API_URL: ${{ vars.API_URL }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
 
