@@ -22,7 +22,7 @@ services:
       - key: PAGOS_MODO
         value: prueba
       - key: MONGODB_DB
-        value: voltrix
+        value: voltrix_prod # separada de la base "voltrix" de desarrollo
       - key: DATABASE_URL
         sync: false
       - key: FRONTEND_URL

@@ -32,6 +32,8 @@ const ORIGENES = (process.env.FRONTEND_URL || 'http://localhost:4321').split(','
 
 const schema = makeExecutableSchema({ typeDefs, resolvers })
 const app = express()
+// Detrás del proxy de Render/Netlify: req.ip es la IP real del cliente (X-Forwarded-For).
+app.set('trust proxy', 1)
 const httpServer = createServer(app)
 
 // WebSocket para Subscriptions. El token va en connectionParams.authorization
