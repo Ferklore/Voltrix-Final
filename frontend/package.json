@@ -18,7 +18,7 @@
     "@paypal/react-paypal-js": "^10.5.2",
     "astro": "^7.3.5",
     "graphql-ws": "^6.4.1",
-    "react": "^19.3.0",
+    "react": "^19.3.1",
     "react-dom": "^19.3.0"
   }
 }
