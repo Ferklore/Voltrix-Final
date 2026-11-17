@@ -8,12 +8,21 @@ const CARGAR = `query ($id: ID!) { producto(id: $id) { ficha { especificaciones 
 const GUARDAR = `mutation ($id: ID!, $datos: FichaInput!) { guardarFicha(productoId: $id, datos: $datos) { actualizado } }`
 const vacia = () => ({ especificaciones: [{ nombre: '', valor: '' }], datasheetUrl: '', descripcion: '' })
 
-const FichaEditor = forwardRef(function FichaEditor({ productoId, disponible }, ref) {
+// inicial: ficha para precargar en un producto nuevo (p. ej. importado de Mouser).
+const FichaEditor = forwardRef(function FichaEditor({ productoId, disponible, inicial }, ref) {
   const [ficha, setFicha] = useState(vacia)
   const [tocada, setTocada] = useState(false)
 
   useEffect(() => {
     setTocada(false)
+    if (!productoId && inicial) {
+      setFicha({
+        especificaciones: inicial.especificaciones.length ? inicial.especificaciones : vacia().especificaciones,
+        datasheetUrl: inicial.datasheetUrl || '',
+        descripcion: inicial.descripcion || '',
+      })
+      return setTocada(true)
+    }
     if (!productoId || !disponible) return setFicha(vacia())
     gql(CARGAR, { id: productoId })
       .then(({ producto }) => {
@@ -25,7 +34,7 @@ const FichaEditor = forwardRef(function FichaEditor({ productoId, disponible }, 
         )
       })
       .catch(() => setFicha(vacia()))
-  }, [productoId, disponible])
+  }, [productoId, disponible, inicial])
 
   // El padre la guarda con el id del producto (nuevo o existente).
   useImperativeHandle(ref, () => ({

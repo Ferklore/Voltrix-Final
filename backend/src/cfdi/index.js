@@ -6,6 +6,9 @@ import { GraphQLError } from 'graphql'
 import { pool } from '../db.js'
 import { armarComprobante, aXml, dinero2 } from './generar.js'
 import { validar } from './validar.js'
+import { pdfPrefactura } from './pdf.js'
+import { cloudinaryConfigurado, subirArchivo } from '../cloudinary.js'
+import { registrar } from '../mongo/bitacora.js'
 
 export { pdfPrefactura } from './pdf.js'
 
@@ -49,7 +52,32 @@ export async function generarPrefactura(pedidoId) {
       xml, JSON.stringify(comprobante), errores.length === 0, JSON.stringify(errores),
     ]
   )
+  respaldar(rows[0])
   return rows[0]
+}
+
+// Copia el XML y el PDF a Cloudinary como archivos privados. Sin esperar: si
+// Cloudinary falla, la prefactura ya quedó guardada en PostgreSQL.
+function respaldar(prefactura) {
+  if (!cloudinaryConfigurado()) return
+  const nombre = `prefactura-${prefactura.serie}${prefactura.folio}`
+  ;(async () => {
+    const pdf = await pdfPrefactura(prefactura.datos, prefactura)
+    const [xml, archivoPdf] = await Promise.all([
+      subirArchivo(prefactura.xml, { nombre: `${nombre}.xml`, carpeta: 'prefacturas', publicId: `${nombre}.xml` }),
+      subirArchivo(pdf, { nombre: `${nombre}.pdf`, carpeta: 'prefacturas', publicId: `${nombre}.pdf` }),
+    ])
+    // Solo el public_id: la URL que devuelve Cloudinary trae una firma que
+    // da acceso al archivo privado, así que no se guarda.
+    // ponytail: para recuperar un respaldo hay que generar una URL firmada
+    // con el API secret (o bajarlo desde el Media Library de Cloudinary).
+    const sinUrl = ({ publicId, bytes }) => ({ publicId, bytes })
+    const respaldo = { xml: sinUrl(xml), pdf: sinUrl(archivoPdf), fecha: new Date().toISOString() }
+    await pool.query('UPDATE prefactura SET respaldo = $1 WHERE pedido_id = $2', [JSON.stringify(respaldo), prefactura.pedido_id])
+  })().catch((err) => {
+    console.warn(`[cloudinary] no se respaldó la prefactura del pedido ${prefactura.pedido_id}: ${err.message}`)
+    registrar('RESPALDO_FALLIDO',`Prefactura del pedido #${prefactura.pedido_id}: ${err.message}`, { datos: { pedidoId: prefactura.pedido_id } })
+  })
 }
 
 // La guardada o, si el pedido está pagado y todavía no tiene, la genera.

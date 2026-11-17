@@ -1,11 +1,14 @@
 ---
 import { dinero } from '../lib/carrito.js'
+import { urlImagen } from '../lib/imagen.js'
+import BotonDeseo from './BotonDeseo.jsx'
 const { producto: p } = Astro.props
 ---
+<div class="producto-card-envoltura">
 <a class="producto-card" href={`/producto/${p.id}`}>
   {p.precioAnterior && <span class="etiqueta-oferta">-{p.descuento}%</span>}
   <div class="producto-img">
-    {p.imagen && <img src={p.imagen} alt="" width="180" height="110" loading="lazy" />}
+    {p.imagen && <img src={urlImagen(p.imagen, 400)} alt="" width="180" height="110" loading="lazy" />}
   </div>
   <h3>{p.nombre}</h3>
   <p class="precio">
@@ -14,3 +17,5 @@ const { producto: p } = Astro.props
   </p>
   <p class="stock">{p.stock > 0 ? `${p.stock} disponibles` : 'Agotado'}</p>
 </a>
+<div class="producto-card-deseo"><BotonDeseo client:visible productoId={p.id} nombre={p.nombre} /></div>
+</div>

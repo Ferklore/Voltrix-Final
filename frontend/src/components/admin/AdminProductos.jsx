@@ -3,6 +3,8 @@
 // actualiza en vivo cuando alguien compra o se cancela un pedido.
 import { useEffect, useRef, useState } from 'react'
 import FichaEditor from './FichaEditor.jsx'
+import SubirImagen from './SubirImagen.jsx'
+import ImportarMouser from './ImportarMouser.jsx'
 import { dinero } from '../../lib/carrito.js'
 import { gql } from '../../lib/sesion.js'
 import { PRODUCTO_CAMBIO, useSuscripcion } from '../../lib/vivo.js'
@@ -11,6 +13,8 @@ const DATOS = `{
   productos { id nombre precio precioAnterior claveProdServ imagen especificaciones stock categoria { id nombre } }
   categorias { id nombre }
   mongoDisponible
+  subidaImagenesDisponible
+  mouserDisponible
 }`
 const CAMPOS = 'id nombre precio precioAnterior claveProdServ imagen especificaciones stock categoria { id nombre }'
 const CREAR = `mutation ($datos: ProductoInput!) { crearProducto(datos: $datos) { ${CAMPOS} } }`
@@ -28,6 +32,9 @@ export default function AdminProductos() {
   const [error, setError] = useState('')
   const [guardando, setGuardando] = useState(false)
   const [mongo, setMongo] = useState(false)
+  const [subidas, setSubidas] = useState(false)
+  const [mouser, setMouser] = useState(false)
+  const [fichaInicial, setFichaInicial] = useState(null)
   const fichaRef = useRef(null)
 
   // También llegan los cambios hechos aquí mismo; reemplazar por id los deja igual.
@@ -45,11 +52,44 @@ export default function AdminProductos() {
         setProductos(d.productos)
         setCategorias(d.categorias)
         setMongo(d.mongoDisponible)
+        setSubidas(d.subidaImagenesDisponible)
+        setMouser(d.mouserDisponible)
       })
       .catch((err) => setError(err.message))
   }, [])
 
+  // Producto nuevo con los datos de una pieza de Mouser. La imagen se copia a
+  // Cloudinary (si está configurado) para no enlazar imágenes de otro sitio.
+  const importarDeMouser = async (parte) => {
+    let imagen = ''
+    let aviso = ''
+    if (parte.imagenUrl && subidas) {
+      try {
+        imagen = (await gql('mutation ($url: String!) { importarImagenMouser(url: $url) }', { url: parte.imagenUrl })).importarImagenMouser
+      } catch (err) {
+        // Sin imagen se puede seguir: el admin la sube a mano.
+        aviso = `${err.message} Sube la imagen a mano.`
+      }
+    }
+    setError(aviso)
+    setEditando('nuevo')
+    setForm({
+      ...VACIO,
+      nombre: `${parte.fabricante} ${parte.numeroFabricante}`.slice(0, 150),
+      precio: parte.precioSugeridoMxn ? String(parte.precioSugeridoMxn) : '',
+      stock: '0',
+      imagen,
+      especificaciones: parte.descripcion.slice(0, 255),
+    })
+    setFichaInicial({
+      especificaciones: parte.atributos,
+      datasheetUrl: parte.datasheetUrl,
+      descripcion: `${parte.descripcion}\nFabricante: ${parte.fabricante} · No. de parte: ${parte.numeroFabricante} · Mouser: ${parte.numeroMouser}`,
+    })
+  }
+
   const abrir = (p) => {
+    setFichaInicial(null)
     setError('')
     setEditando(p ? p.id : 'nuevo')
     setForm(
@@ -125,9 +165,12 @@ export default function AdminProductos() {
     <section>
       <div className="admin-bloque-cabecera">
         <h1>Productos</h1>
-        <button className="btn-primario" type="button" onClick={() => abrir(null)}>
-          Nuevo producto
-        </button>
+        <div className="pedido-acciones">
+          {mouser && <ImportarMouser onImportar={importarDeMouser} />}
+          <button className="btn-primario" type="button" onClick={() => abrir(null)}>
+            Nuevo producto
+          </button>
+        </div>
       </div>
       {error && <p className="error" role="alert">{error}</p>}
 
@@ -163,15 +206,16 @@ export default function AdminProductos() {
             Clave SAT (c_ClaveProdServ)
             <input required inputMode="numeric" pattern="\d{8}" maxLength={8} {...campo('claveProdServ')} />
           </label>
-          <label className="ancho">
-            Imagen (ruta en public/, p. ej. /productos/esp32.svg)
-            <input maxLength={255} {...campo('imagen')} />
-          </label>
+          <SubirImagen
+            valor={form.imagen}
+            disponible={subidas}
+            onChange={(imagen) => setForm((f) => ({ ...f, imagen }))}
+          />
           <label className="ancho">
             Especificaciones
             <input maxLength={255} {...campo('especificaciones')} />
           </label>
-          <FichaEditor ref={fichaRef} productoId={editando === 'nuevo' ? null : editando} disponible={mongo} />
+          <FichaEditor ref={fichaRef} productoId={editando === 'nuevo' ? null : editando} disponible={mongo} inicial={fichaInicial} />
           <div className="ancho form-admin-acciones">
             <button className="btn-primario" type="submit" disabled={guardando}>
               {guardando ? 'Guardando…' : 'Guardar'}

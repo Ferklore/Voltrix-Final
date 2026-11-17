@@ -10,8 +10,8 @@
     "migrar": "node --env-file-if-exists=.env scripts/migrar.mjs",
     "mcp": "node --env-file-if-exists=.env scripts/mcp-stdio.mjs",
     "validar": "node scripts/validar.mjs",
-    "test:unit": "node --test test/cfdi.test.js test/correo.test.js test/mongo.test.js test/kits.test.js test/google.test.js test/modo-prueba.test.js",
-    "test:e2e": "node --test test/api.test.js test/subscripciones.test.js test/mcp.test.js"
+    "test:unit": "node --test test/cfdi.test.js test/correo.test.js test/mongo.test.js test/kits.test.js test/google.test.js test/cloudinary.test.js test/mouser.test.js test/modo-prueba.test.js",
+    "test:e2e": "node --test test/api.test.js test/subscripciones.test.js test/mcp.test.js test/deseos.test.js"
   },
   "engines": {
     "node": ">=22"

@@ -6,7 +6,7 @@
 -- No trae usuarios: los clientes se registran en /registro y el admin se crea
 -- con `npm run crear-admin`.
 
-DROP TABLE IF EXISTS password_reset, prefactura, pago, oauth_token, detalle_pedido, pedido, producto, usuario, categoria;
+DROP TABLE IF EXISTS lista_deseos, password_reset, prefactura, pago, oauth_token, detalle_pedido, pedido, producto, usuario, categoria;
 DROP TYPE  IF EXISTS rol_usuario, status_pedido, proveedor_pago, metodo_pago, status_pago;
 
 CREATE TYPE rol_usuario   AS ENUM ('CLIENTE', 'ADMIN');
@@ -118,7 +118,8 @@ CREATE TABLE IF NOT EXISTS prefactura (
   xml          text NOT NULL,
   datos        jsonb NOT NULL,                -- el comprobante ya calculado (para el PDF)
   valida       boolean NOT NULL,
-  errores      jsonb NOT NULL DEFAULT '[]'
+  errores      jsonb NOT NULL DEFAULT '[]',
+  respaldo     jsonb                          -- copia en Cloudinary (007)
 );
 
 -- Dirección y ofertas (igual que migraciones/004-direccion-ofertas.sql).
@@ -158,6 +159,15 @@ CREATE UNIQUE INDEX IF NOT EXISTS usuario_google_sub_idx ON usuario (google_sub)
 -- Quien entra solo con Google no tiene contraseña. Puede ponerse una después
 -- con "¿Olvidaste tu contraseña?".
 ALTER TABLE usuario ALTER COLUMN password DROP NOT NULL;
+
+-- Lista de deseos (igual que migraciones/008-lista-deseos.sql).
+CREATE TABLE IF NOT EXISTS lista_deseos (
+  usuario_id  integer NOT NULL REFERENCES usuario (id) ON DELETE CASCADE,
+  producto_id integer NOT NULL REFERENCES producto (id) ON DELETE CASCADE,
+  creado      timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (usuario_id, producto_id)
+);
+CREATE INDEX IF NOT EXISTS lista_deseos_producto_id_idx ON lista_deseos (producto_id);
 
 INSERT INTO categoria (id, nombre, descripcion) VALUES
 (1, 'Microcontroladores', 'Placas ESP32, Arduino, STM32'),

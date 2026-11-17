@@ -1,0 +1,7 @@
+---
+import Base from '../layouts/Base.astro'
+import ListaDeseos from '../components/ListaDeseos.jsx'
+---
+<Base titulo="Mi lista de deseos" sinSidebar>
+  <ListaDeseos client:only="react" />
+</Base>

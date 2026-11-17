@@ -31,6 +31,8 @@ export const typeDefs = /* GraphQL */ `
     calificacion: ResumenResenas!
     "Más recientes primero."
     resenas(limite: Int = 20): [Resena!]!
+    "true si está en la lista de deseos del usuario del token (false sin sesión)."
+    enMiLista: Boolean!
   }
 
   # --- MongoDB: fichas técnicas, reseñas, historial y bitácora ---
@@ -71,6 +73,41 @@ export const typeDefs = /* GraphQL */ `
   }
 
   type CambioEstado { status: StatusPedido!, fecha: String! }
+
+  "Componente del catálogo de Mouser (para importarlo a la tienda)."
+  type ParteMouser {
+    numeroMouser: String!
+    numeroFabricante: String!
+    fabricante: String!
+    descripcion: String!
+    categoria: String!
+    datasheetUrl: String
+    imagenUrl: String
+    urlMouser: String
+    disponibilidad: String
+    enStock: Int!
+    "Precio por 1 pieza en Mouser (USD)."
+    precioUsd: Float
+    "Precio por 1 pieza en la moneda en que cotizó Mouser."
+    precioMouser: Float
+    moneda: String
+    "Restricción o estado del producto según Mouser (p. ej. no se vende en tu región)."
+    aviso: String
+    "Precio de venta sugerido: USD x tipo de cambio x margen x IVA."
+    precioSugeridoMxn: Float
+    atributos: [Especificacion!]!
+  }
+
+  "Datos para que el navegador suba una imagen directo a Cloudinary."
+  type FirmaSubida {
+    url: String!
+    apiKey: String!
+    cloudName: String!
+    folder: String!
+    timestamp: Int!
+    transformation: String!
+    signature: String!
+  }
 
   # --- Recomendador de kits (también disponible por MCP) ---
   type Kit {
@@ -155,6 +192,8 @@ export const typeDefs = /* GraphQL */ `
     pedidos: [Pedido!]!
     "Solo el propio usuario o ADMIN. null si no la ha capturado."
     direccion: Direccion
+    "Solo el propio usuario. Lo más reciente primero."
+    listaDeseos: [Producto!]!
     "Solo el propio usuario o ADMIN. null si no ha capturado datos fiscales."
     datosFiscales: DatosFiscales
   }
@@ -196,6 +235,8 @@ export const typeDefs = /* GraphQL */ `
     total: Float!
     "true si pasó el XSD y las reglas de catálogos y cálculo."
     valida: Boolean!
+    "true si ya hay copia del XML y el PDF en Cloudinary."
+    respaldada: Boolean!
     errores: [String!]!
     xml: String!
   }
@@ -300,6 +341,7 @@ export const typeDefs = /* GraphQL */ `
     precioAnterior: Float
     "8 dígitos; si no viene se queda la actual (o 01010101 en un producto nuevo)."
     claveProdServ: String
+    "Ruta en public/ (/productos/x.svg) o URL https://res.cloudinary.com/…"
     imagen: String
     especificaciones: String
     categoriaId: ID
@@ -354,6 +396,12 @@ export const typeDefs = /* GraphQL */ `
     catalogosCfdi: CatalogosCfdi!
     "Client id PÚBLICO de Google para dibujar el botón. null si no está configurado."
     googleClientId: String
+    "true si el backend puede firmar subidas de imágenes a Cloudinary."
+    subidaImagenesDisponible: Boolean!
+    "true si el backend tiene MOUSER_API_KEY."
+    mouserDisponible: Boolean!
+    "Solo ADMIN. Busca en el catálogo de Mouser por palabras o por número de parte."
+    buscarEnMouser(texto: String!, porNumeroDeParte: Boolean = false, limite: Int = 10): [ParteMouser!]!
     "Kits que sabe armar el recomendador."
     kits: [Kit!]!
     "Arma un kit con productos en existencia. proyecto = descripción libre; o kitId para elegir uno."
@@ -367,6 +415,14 @@ export const typeDefs = /* GraphQL */ `
   }
 
   type Mutation {
+    "Requiere sesión. Agrega el producto a la lista de deseos (si ya estaba, no pasa nada)."
+    agregarADeseos(productoId: ID!): Producto!
+    "Requiere sesión. Lo quita de la lista; true si estaba."
+    quitarDeDeseos(productoId: ID!): Boolean!
+    "Solo ADMIN. Firma para subir una imagen de producto a Cloudinary (vale ~1 hora)."
+    firmarSubidaImagen: FirmaSubida!
+    "Solo ADMIN. Copia una imagen de Mouser a Cloudinary y devuelve su URL."
+    importarImagenMouser(url: String!): String!
     "Solo ADMIN. Crea o reemplaza la ficha técnica del producto."
     guardarFicha(productoId: ID!, datos: FichaInput!): Ficha!
     "Requiere sesión. Una reseña por producto: si ya tenías, se actualiza."
