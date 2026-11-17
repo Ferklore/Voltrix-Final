@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@astrojs/netlify": "^8.2.6",
-    "@astrojs/react": "^7.0.0",
+    "@astrojs/react": "^7.1.2",
     "@mercadopago/sdk-react": "^1.0.7",
     "@paypal/react-paypal-js": "^10.5.2",
     "astro": "^7.3.5",
