@@ -1,0 +1,66 @@
+---
+// Búsqueda y filtros del catálogo (RF2.2). Todo va en la URL (GET), así el
+// resultado se puede compartir, recargar o volver con "atrás".
+import Base from '../layouts/Base.astro'
+import ProductCard from '../components/ProductCard.astro'
+import { ORDENES, buscarProductos, categorias, idValido } from '../lib/api.js'
+
+const p = Astro.url.searchParams
+const q = (p.get('q') ?? '').trim().slice(0, 100)
+const categoriaId = idValido(p.get('categoria'))
+const orden = ORDENES[p.get('orden') ?? ''] ? (p.get('orden') ?? '') : ''
+const soloOfertas = p.get('ofertas') === '1'
+
+const [lista, cats] = await Promise.all([buscarProductos({ busqueda: q, categoriaId, soloOfertas, orden }), categorias()])
+const categoria = cats.find((c) => Number(c.id) === categoriaId)
+
+const base = q ? `Resultados para "${q}"`
+  : soloOfertas ? 'Ofertas'
+  : orden === 'MAS_VENDIDOS' ? 'Más vendidos'
+  : null
+const titulo = base && categoria ? `${base} en ${categoria.nombre}` : base || categoria?.nombre || 'Catálogo'
+const hayFiltros = q || categoriaId || soloOfertas || orden
+---
+<Base titulo={titulo}>
+  <h1>{titulo}</h1>
+
+  <form class="panel filtros" action="/buscar" method="get">
+    <label>
+      Buscar
+      <input type="search" name="q" value={q} maxlength="100" placeholder="ESP32, sensor, 5V…" />
+    </label>
+    <label>
+      Categoría
+      <select name="categoria">
+        <option value="">Todas</option>
+        {cats.map((c) => <option value={c.id} selected={Number(c.id) === categoriaId}>{c.nombre}</option>)}
+      </select>
+    </label>
+    <label>
+      Ordenar por
+      <select name="orden">
+        {Object.entries(ORDENES).map(([valor, texto]) => <option value={valor} selected={valor === orden}>{texto}</option>)}
+      </select>
+    </label>
+    <label class="filtro-check">
+      <input type="checkbox" name="ofertas" value="1" checked={soloOfertas} />
+      Solo ofertas
+    </label>
+    <div class="filtros-acciones">
+      <button class="btn-primario" type="submit">Aplicar</button>
+      {hayFiltros && <a class="btn-texto" href="/buscar">Limpiar</a>}
+    </div>
+  </form>
+
+  <p class="resultados-conteo" role="status">
+    {lista.length === 1 ? '1 producto' : `${lista.length} productos`}
+  </p>
+  {lista.length
+    ? <div class="grid-productos">{lista.map((prod) => <ProductCard producto={prod} />)}</div>
+    : (
+      <div class="panel vacio">
+        <p>No encontramos productos{q && <> para <strong>"{q}"</strong></>} con esos filtros.</p>
+        <a class="btn-texto" href="/buscar">Ver todo el catálogo</a>
+      </div>
+    )}
+</Base>

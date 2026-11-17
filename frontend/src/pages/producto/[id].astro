@@ -1,0 +1,59 @@
+---
+import Base from '../../layouts/Base.astro'
+import AgregarAlCarrito from '../../components/AgregarAlCarrito.jsx'
+import Resenas from '../../components/Resenas.jsx'
+import Estrellas from '../../components/Estrellas.astro'
+import { idValido, producto } from '../../lib/api.js'
+import { dinero } from '../../lib/carrito.js'
+
+const id = idValido(Astro.params.id)
+const p = id && (await producto(id))
+if (!p) return Astro.rewrite('/404')
+---
+<Base titulo={p.nombre} descripcion={p.especificaciones ?? undefined}>
+  {p.categoria && <a class="volver" href={`/categoria/${p.categoria.id}`}>← {p.categoria.nombre}</a>}
+  <section class="producto-detalle">
+    <div class="producto-detalle-img">
+      {p.imagen && <img src={p.imagen} alt={p.nombre} width="260" height="260" />}
+    </div>
+    <div class="producto-detalle-info">
+      <h1>{p.nombre}</h1>
+      {p.categoria && <p class="categoria-tag">{p.categoria.nombre}</p>}
+      {p.calificacion.total > 0 && (
+        <a class="calificacion-resumen" href="#resenas">
+          <Estrellas valor={p.calificacion.promedio} />
+          {p.calificacion.promedio.toFixed(1)} · {p.calificacion.total} {p.calificacion.total === 1 ? 'reseña' : 'reseñas'}
+        </a>
+      )}
+      <p class="precio">
+        {p.precioAnterior && <s class="precio-anterior">{dinero(p.precioAnterior)}</s>}
+        {dinero(p.precio)}
+        {p.precioAnterior && <span class="etiqueta-oferta en-linea">-{p.descuento}%</span>}
+      </p>
+      {p.especificaciones && <p class="especificaciones">{p.especificaciones}</p>}
+      <p class="stock">{p.stock > 0 ? `${p.stock} disponibles` : 'Sin existencias'}</p>
+      <AgregarAlCarrito client:load producto={{ id: Number(p.id), nombre: p.nombre, precio: p.precio, imagen: p.imagen, stock: p.stock }} />
+    </div>
+  </section>
+
+  {p.ficha && (
+    <section class="panel ficha-tecnica">
+      <h2>Ficha técnica</h2>
+      {p.ficha.descripcion && <p class="ficha-descripcion">{p.ficha.descripcion}</p>}
+      {p.ficha.especificaciones.length > 0 && (
+        <table class="tabla ficha-tabla">
+          <tbody>
+            {p.ficha.especificaciones.map((e) => (
+              <tr><th scope="row">{e.nombre}</th><td>{e.valor}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {p.ficha.datasheetUrl && (
+        <p><a class="btn-texto" href={p.ficha.datasheetUrl} target="_blank" rel="noopener noreferrer">Ver datasheet ↗</a></p>
+      )}
+    </section>
+  )}
+
+  <Resenas client:load productoId={p.id} />
+</Base>

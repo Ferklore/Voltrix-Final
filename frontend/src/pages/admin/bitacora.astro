@@ -1,0 +1,7 @@
+---
+import Base from '../../layouts/Base.astro'
+import PanelAdmin from '../../components/admin/PanelAdmin.jsx'
+---
+<Base titulo="Admin · Bitácora" sinSidebar>
+  <PanelAdmin client:only="react" seccion="bitacora" />
+</Base>

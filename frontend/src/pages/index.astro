@@ -1,0 +1,43 @@
+---
+import Base from '../layouts/Base.astro'
+import ProductCard from '../components/ProductCard.astro'
+import { buscarProductos, productos } from '../lib/api.js'
+
+const [lista, ofertas, vendidos] = await Promise.all([
+  productos(),
+  buscarProductos({ soloOfertas: true, orden: 'PRECIO_ASC', limite: 4 }),
+  buscarProductos({ orden: 'MAS_VENDIDOS', limite: 4 }),
+])
+// Solo los que de verdad se han vendido.
+const masVendidos = vendidos.filter((p) => p.vendidos > 0)
+---
+<Base>
+  <section class="hero">
+    <h1>Componentes que encienden tus proyectos</h1>
+    <p>Microcontroladores, sensores y displays con envío a todo México.</p>
+    <a class="btn-hero" href="/kit">¿Tienes un proyecto? Arma tu kit →</a>
+  </section>
+
+  {ofertas.length > 0 && (
+    <section>
+      <div class="seccion-cabecera">
+        <h2>Ofertas</h2>
+        <a href="/buscar?ofertas=1">Ver todas</a>
+      </div>
+      <div class="grid-productos">{ofertas.map((p) => <ProductCard producto={p} />)}</div>
+    </section>
+  )}
+
+  {masVendidos.length > 0 && (
+    <section>
+      <div class="seccion-cabecera">
+        <h2>Más vendidos</h2>
+        <a href="/buscar?orden=MAS_VENDIDOS">Ver todos</a>
+      </div>
+      <div class="grid-productos">{masVendidos.map((p) => <ProductCard producto={p} />)}</div>
+    </section>
+  )}
+
+  <h2>Todos los productos</h2>
+  <div class="grid-productos">{lista.map((p) => <ProductCard producto={p} />)}</div>
+</Base>

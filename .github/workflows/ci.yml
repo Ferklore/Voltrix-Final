@@ -1,0 +1,195 @@
+# CI/CD de Voltrix (RF9.1 y RF9.2).
+#   1. backend:  validación estática, auditoría, pruebas unitarias y pruebas de
+#                punta a punta contra PostgreSQL y MongoDB de verdad (servicios).
+#   2. frontend: auditoría, pruebas y build de Astro.
+#   3. desplegar: solo en push a main y si 1 y 2 pasaron. Migra la base de
+#                producción, despliega el backend en Render y el frontend en Netlify.
+# Los secretos van en Settings > Secrets and variables > Actions (ver README).
+name: CI/CD
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+# Un push nuevo a la misma rama cancela la corrida anterior (no la de main,
+# para no cortar un despliegue a la mitad).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  backend:
+    name: Backend · validar y probar
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: voltrix
+          POSTGRES_PASSWORD: voltrix
+          POSTGRES_DB: voltrix
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U voltrix"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      mongo:
+        image: mongo:7
+        ports: ['27017:27017']
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok'"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://voltrix:voltrix@localhost:5432/voltrix
+      MONGODB_URI: mongodb://localhost:27017
+      MONGODB_DB: voltrix_ci
+      PORT: '4000'
+      FRONTEND_URL: http://localhost:4321
+      PAGOS_MODO: prueba
+      BASE: http://localhost:4000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Validar (sintaxis, esquema GraphQL, migraciones, XSD)
+        run: npm run validar
+
+      - name: Análisis de calidad · dependencias con vulnerabilidades altas
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Pruebas unitarias
+        run: npm run test:unit
+
+      - name: Preparar base de datos de prueba
+        run: |
+          sudo apt-get install -y --no-install-recommends postgresql-client > /dev/null
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f db.sql
+          npm run migrar
+          npm run crear-admin -- admin@voltrix.test "Admin CI" AdminPrueba123
+
+      - name: Levantar el backend
+        run: |
+          npm start > backend.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:4000/ > /dev/null && exit 0
+            sleep 1
+          done
+          echo "El backend no arrancó:"; cat backend.log; exit 1
+
+      - name: Pruebas de punta a punta (API, Subscriptions, MCP)
+        run: npm run test:e2e
+
+      - name: Log del backend
+        if: failure()
+        run: cat backend.log
+
+  frontend:
+    name: Frontend · probar y compilar
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Solo informa: lo que reporta hoy está en las herramientas de build de
+      # Netlify/Vite, no en el código que llega al navegador.
+      - name: Análisis de calidad · dependencias (informativo)
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Pruebas
+        run: npm test
+
+      - name: Build
+        env:
+          PUBLIC_API_URL: ${{ vars.PUBLIC_API_URL || 'http://localhost:4000' }}
+        run: npm run build
+
+  desplegar:
+    name: Desplegar a producción
+    needs: [backend, frontend]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: produccion
+      url: ${{ vars.TIENDA_URL }}
+    # GitHub no deja usar secrets en un "if"; se pasan a env y se pregunta por env.
+    # Si falta alguno, ese paso se salta (p. ej. solo frontend sin backend todavía).
+    env:
+      DATABASE_URL_PRODUCCION: ${{ secrets.DATABASE_URL_PRODUCCION }}
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      API_URL: ${{ vars.API_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Las migraciones se pueden repetir sin daño; van antes del código nuevo.
+      - name: Migrar base de producción
+        if: env.DATABASE_URL_PRODUCCION != ''
+        working-directory: backend
+        run: |
+          export DATABASE_URL="$DATABASE_URL_PRODUCCION"
+          npm ci --omit=dev
+          npm run migrar
+
+      - name: Desplegar backend (Render)
+        if: env.RENDER_DEPLOY_HOOK_URL != ''
+        run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null && echo "Render recibió el despliegue."
+
+      - name: Esperar a que el backend responda
+        if: env.API_URL != ''
+        run: |
+          # Render tarda en construir y el plan gratis "duerme": hasta 10 min.
+          for i in $(seq 1 60); do
+            curl -sf "$API_URL/" > /dev/null && echo "Backend arriba." && exit 0
+            sleep 10
+          done
+          echo "El backend no respondió a tiempo."; exit 1
+
+      - name: Desplegar frontend (Netlify)
+        if: env.NETLIFY_AUTH_TOKEN != ''
+        working-directory: frontend
+        env:
+          PUBLIC_API_URL: ${{ vars.API_URL }}
+        run: |
+          npm ci
+          npx --yes netlify-cli@27.16.1 deploy --prod --build --message "CI ${GITHUB_SHA::7}"

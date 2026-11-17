@@ -1,0 +1,30 @@
+# Análisis de calidad y seguridad del código (RF9.1) con CodeQL de GitHub:
+# busca inyección SQL, XSS, secretos expuestos, código inseguro, etc. Los
+# hallazgos aparecen en la pestaña Security > Code scanning del repositorio.
+# Gratis en repositorios públicos.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 13 * * 1' # lunes 7:00 en México
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analizar:
+    name: Analizar JavaScript
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-and-quality
+      - uses: github/codeql-action/analyze@v3

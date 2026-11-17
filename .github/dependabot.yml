@@ -1,0 +1,24 @@
+# Dependabot abre pull requests cuando hay versiones nuevas de las
+# dependencias. Cada PR pasa por el pipeline de CI antes de poder unirse.
+# cooldown: espera 14 días antes de proponer una versión recién publicada,
+# por si sale con un error o un paquete comprometido.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /backend
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+    open-pull-requests-limit: 5
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

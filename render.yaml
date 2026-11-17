@@ -1,0 +1,57 @@
+# Backend en Render (infraestructura como código, "Blueprint").
+# Render > New > Blueprint > elige este repositorio. Los valores con
+# sync: false se capturan en el panel de Render (son secretos y no van al repo).
+# autoDeployTrigger: off -> Render no despliega solo con cada push: lo hace el
+# pipeline de GitHub Actions con el deploy hook, y solo si pasaron las pruebas.
+services:
+  - type: web
+    name: voltrix-backend
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeployTrigger: 'off'
+    envVars:
+      - key: NODE_VERSION
+        value: '22'
+      - key: NODE_ENV
+        value: production
+      - key: PAGOS_MODO
+        value: prueba
+      - key: MONGODB_DB
+        value: voltrix
+      - key: DATABASE_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: TIENDA_URL
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: CORREO_REMITENTE
+        sync: false
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_API
+        value: https://api-m.sandbox.paypal.com
+      - key: PAYPAL_MONEDA
+        value: MXN
+      - key: MP_PUBLIC_KEY
+        sync: false
+      - key: MP_ACCESS_TOKEN
+        sync: false
+      - key: CFDI_EMISOR_RFC
+        sync: false
+      - key: CFDI_EMISOR_NOMBRE
+        sync: false
+      - key: CFDI_LUGAR_EXPEDICION
+        sync: false

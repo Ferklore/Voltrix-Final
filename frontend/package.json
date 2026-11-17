@@ -1,0 +1,24 @@
+{
+  "name": "voltrix-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@astrojs/netlify": "^8.2.6",
+    "@astrojs/react": "^7.0.0",
+    "@mercadopago/sdk-react": "^1.0.7",
+    "@paypal/react-paypal-js": "^10.5.2",
+    "astro": "^7.3.5",
+    "graphql-ws": "^6.4.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  }
+}

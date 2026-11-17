@@ -1,0 +1,7 @@
+---
+import Base from '../layouts/Base.astro'
+import RecuperarPassword from '../components/RecuperarPassword.jsx'
+---
+<Base titulo="Nueva contraseña" sinSidebar>
+  <RecuperarPassword client:only="react" modo="restablecer" />
+</Base>

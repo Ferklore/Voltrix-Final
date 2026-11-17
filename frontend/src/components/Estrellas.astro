@@ -1,0 +1,9 @@
+---
+// Cinco estrellas con relleno proporcional (4.3 -> cuatro y casi un tercio).
+const { valor = 0 } = Astro.props
+const ancho = `${Math.max(0, Math.min(5, valor)) * 20}%`
+---
+<span class="estrellas" role="img" aria-label={`${valor} de 5 estrellas`}>
+  <span class="estrellas-fondo" aria-hidden="true">★★★★★</span>
+  <span class="estrellas-relleno" style={`width:${ancho}`} aria-hidden="true">★★★★★</span>
+</span>
