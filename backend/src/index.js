@@ -28,7 +28,13 @@ import { esquemaAlDia } from './db.js'
 import { MODO_PRUEBA } from './pagos/modo.js'
 
 const PORT = Number(process.env.PORT) || 4000
-const ORIGENES = (process.env.FRONTEND_URL || 'http://localhost:4321').split(',').map((s) => s.trim())
+// "voltrixf.netlify.app/", "https://voltrixf.netlify.app" -> https://voltrixf.netlify.app
+// (el navegador manda el Origin sin "/" final; si no coincide exacto, CORS lo bloquea).
+const normalizarOrigen = (s) => {
+  const limpio = s.trim().replace(/\/+$/, '')
+  return /^https?:\/\//.test(limpio) ? limpio : `https://${limpio}`
+}
+const ORIGENES = (process.env.FRONTEND_URL || 'http://localhost:4321').split(',').filter((s) => s.trim()).map(normalizarOrigen)
 
 const schema = makeExecutableSchema({ typeDefs, resolvers })
 const app = express()
