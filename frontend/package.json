@@ -16,7 +16,7 @@
     "@astrojs/react": "^7.0.0",
     "@mercadopago/sdk-react": "^1.0.7",
     "@paypal/react-paypal-js": "^10.5.2",
-    "astro": "^7.3.5",
+    "astro": "^7.4.5",
     "graphql-ws": "^6.4.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
