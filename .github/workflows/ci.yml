@@ -2,7 +2,7 @@
 #   1. backend:  validación estática, auditoría, pruebas unitarias y pruebas de
 #                punta a punta contra PostgreSQL y MongoDB de verdad (servicios).
 #   2. frontend: auditoría, pruebas y build de Astro.
-#   3. desplegar: solo en push a main y si 1 y 2 pasaron. Migra la base de
+#   3. desplegar: solo en main (push o "Run workflow") y si 1 y 2 pasaron. Migra la base de
 #                producción, despliega el backend en Render y el frontend en Netlify.
 # Los secretos van en Settings > Secrets and variables > Actions (ver README).
 name: CI/CD
@@ -152,7 +152,8 @@ jobs:
   desplegar:
     name: Desplegar a producción
     needs: [backend, frontend]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # push a main o "Run workflow" manual sobre main (nunca en pull requests).
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
