@@ -169,6 +169,10 @@ CREATE TABLE IF NOT EXISTS lista_deseos (
 );
 CREATE INDEX IF NOT EXISTS lista_deseos_producto_id_idx ON lista_deseos (producto_id);
 
+-- Ubicación de envío (igual que migraciones/009-ubicacion.sql).
+ALTER TABLE usuario ADD COLUMN IF NOT EXISTS lat double precision;
+ALTER TABLE usuario ADD COLUMN IF NOT EXISTS lng double precision;
+
 INSERT INTO categoria (id, nombre, descripcion) VALUES
 (1, 'Microcontroladores', 'Placas ESP32, Arduino, STM32'),
 (2, 'Sensores', 'Sensores de temperatura, humedad, gas'),

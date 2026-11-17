@@ -1,7 +1,7 @@
 // Correos que dispara la tienda. Se llaman DESPUÉS del COMMIT y sin await:
 // el pedido o el pago ya quedó guardado aunque el correo falle.
 import { pool } from '../db.js'
-import { direccionDeFila } from '../direccion.js'
+import { COLUMNAS_DIRECCION, direccionDeFila } from '../direccion.js'
 import { pdfPrefactura, prefacturaDe } from '../cfdi/index.js'
 import { enviarCorreo, urlTienda } from './enviar.js'
 import * as plantillas from './plantillas.js'
@@ -15,7 +15,7 @@ async function datosPedido(pedidoId) {
   const { rows: [pedido] } = await pool.query('SELECT * FROM pedido WHERE id = $1', [pedidoId])
   if (!pedido) return null
   const [{ rows: [usuario] }, { rows: detalles }] = await Promise.all([
-    pool.query('SELECT id, nombre, email, calle, colonia, ciudad, estado, codigo_postal FROM usuario WHERE id = $1', [pedido.usuario_id]),
+    pool.query(`SELECT id, nombre, email, ${COLUMNAS_DIRECCION} FROM usuario WHERE id = $1`, [pedido.usuario_id]),
     pool.query(
       `SELECT d.cantidad, d.subtotal, p.nombre FROM detalle_pedido d JOIN producto p ON p.id = d.producto_id
         WHERE d.pedido_id = $1 ORDER BY d.id`,

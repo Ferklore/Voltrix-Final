@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import { despachar, dinero, useCarrito } from '../lib/carrito.js'
 import { gql, useSesion } from '../lib/sesion.js'
 import PagarPedido from './PagarPedido.jsx'
+import Mapa from './Mapa.jsx'
+
+const DIRECCION = `{ yo { id direccion { calle colonia ciudad estado codigoPostal lat lng } } }`
 
 const CREAR_PEDIDO = `
   mutation ($items: [ItemPedidoInput!]!) {
@@ -15,10 +18,20 @@ export default function Checkout() {
   const [enviando, setEnviando] = useState(false)
   const [pedido, setPedido] = useState(null)
   const [error, setError] = useState('')
+  // undefined = cargando; null = no tiene dirección.
+  const [direccion, setDireccion] = useState(undefined)
 
   useEffect(() => {
     if (sesion === null) location.replace('/login?siguiente=/checkout')
   }, [sesion])
+
+  const conSesion = Boolean(sesion)
+  useEffect(() => {
+    if (!conSesion) return
+    gql(DIRECCION)
+      .then((d) => setDireccion(d.yo.direccion))
+      .catch(() => setDireccion(null))
+  }, [conSesion])
 
   if (!sesion) return <p className="cargando">Cargando…</p>
 
@@ -78,12 +91,30 @@ export default function Checkout() {
         ))}
       </ul>
       <p className="carrito-total">Total a pagar: {dinero(total)}</p>
+      <section className="panel envio">
+        <h2>Enviar a</h2>
+        {direccion === undefined ? (
+          <p className="cargando">Cargando tu dirección…</p>
+        ) : direccion === null ? (
+          <p className="aviso">
+            Necesitamos tu dirección para enviarte el pedido. <a href="/cuenta">Captúrala en Mi cuenta</a> y regresa aquí.
+          </p>
+        ) : (
+          <>
+            <p>
+              {direccion.calle}, col. {direccion.colonia}, {direccion.ciudad}, {direccion.estado}, CP {direccion.codigoPostal}
+              {' · '}<a href="/cuenta">Cambiar</a>
+            </p>
+            <Mapa lat={direccion.lat} lng={direccion.lng} alto={200} />
+          </>
+        )}
+      </section>
       {error && (
         <p className="error" role="alert">
           {error}
         </p>
       )}
-      <button className="btn-primario" type="button" disabled={enviando} onClick={confirmar}>
+      <button className="btn-primario" type="button" disabled={enviando || !direccion} onClick={confirmar}>
         {enviando ? 'Registrando pedido…' : 'Continuar al pago'}
       </button>
     </section>

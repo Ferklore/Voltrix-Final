@@ -4,7 +4,7 @@
 // producto en PostgreSQL, aquí queda lo que se vendió.
 //   { pedidoId, creado, usuario: { id, nombre, email }, direccion, items: [...], total, status, historial: [{ status, fecha }] }
 import { pool } from '../db.js'
-import { direccionDeFila } from '../direccion.js'
+import { COLUMNAS_DIRECCION, direccionDeFila } from '../direccion.js'
 import { coleccion } from './conexion.js'
 
 export async function guardarDocumentoPedido(pedidoId) {
@@ -13,7 +13,7 @@ export async function guardarDocumentoPedido(pedidoId) {
   const { rows: [pedido] } = await pool.query('SELECT * FROM pedido WHERE id = $1', [pedidoId])
   if (!pedido) return
   const [{ rows: [u] }, { rows: items }] = await Promise.all([
-    pool.query('SELECT id, nombre, email, calle, colonia, ciudad, estado, codigo_postal FROM usuario WHERE id = $1', [pedido.usuario_id]),
+    pool.query(`SELECT id, nombre, email, ${COLUMNAS_DIRECCION} FROM usuario WHERE id = $1`, [pedido.usuario_id]),
     pool.query(
       `SELECT d.producto_id AS "productoId", p.nombre, d.cantidad, d.subtotal,
               round(d.subtotal / d.cantidad, 2)::float AS "precioUnitario"
@@ -52,6 +52,14 @@ export async function registrarEstadoPedido(pedidoId, status) {
   if (!matchedCount && !(await col.countDocuments({ pedidoId: Number(pedidoId) }, { limit: 1 }))) {
     await guardarDocumentoPedido(pedidoId)
   }
+}
+
+// Dirección de envío tal como quedó al crear el pedido (con su ubicación).
+export async function direccionDePedido(pedidoId) {
+  const col = await coleccion('pedidos')
+  if (!col) return undefined
+  const doc = await col.findOne({ pedidoId: Number(pedidoId) }, { projection: { direccion: 1 } })
+  return doc ? doc.direccion ?? null : undefined // undefined = no hay documento
 }
 
 export async function historialPedido(pedidoId) {

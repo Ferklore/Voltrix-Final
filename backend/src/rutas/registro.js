@@ -3,6 +3,7 @@ import { Router } from 'express'
 import { pool } from '../db.js'
 import { emitirTokens, hashPassword, normalizarEmail, validarPasswordNueva } from '../auth.js'
 import { normalizarDireccion } from '../direccion.js'
+import { ubicacionParaGuardar } from '../mapas.js'
 import { registrar } from '../mongo/bitacora.js'
 
 export const registro = Router()
@@ -33,6 +34,9 @@ registro.post('/', async (req, res) => {
       [nombreLimpio, correo, await hashPassword(password), dir.calle, dir.colonia, dir.ciudad, dir.estado, dir.codigoPostal]
     )
     registrar('REGISTRO', `Nueva cuenta: ${correo}`, { usuarioId: rows[0].id })
+    ubicacionParaGuardar(dir)
+      .then((u) => u && pool.query('UPDATE usuario SET lat = $1, lng = $2 WHERE id = $3', [u.lat, u.lng, rows[0].id]))
+      .catch(() => {})
     res.status(201).json(await emitirTokens(rows[0].id))
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'Ya hay una cuenta con ese correo.' })

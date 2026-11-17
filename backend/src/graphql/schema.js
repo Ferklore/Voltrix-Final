@@ -172,6 +172,9 @@ export const typeDefs = /* GraphQL */ `
     ciudad: String!
     estado: String!
     codigoPostal: String!
+    "Ubicación en el mapa (null si no se ha podido ubicar)."
+    lat: Float
+    lng: Float
   }
 
   input DireccionInput {
@@ -180,6 +183,19 @@ export const typeDefs = /* GraphQL */ `
     ciudad: String!
     estado: String!
     codigoPostal: String!
+    "Pin que movió el cliente en el mapa. Si no viene, se ubica con HERE."
+    lat: Float
+    lng: Float
+  }
+
+  "Resultado de ubicar una dirección con HERE."
+  type Ubicacion {
+    lat: Float!
+    lng: Float!
+    "Dirección como la entendió HERE."
+    etiqueta: String
+    "Hasta dónde llegó: número exterior, calle, código postal…"
+    precision: String
   }
 
   enum Rol { CLIENTE ADMIN }
@@ -263,6 +279,8 @@ export const typeDefs = /* GraphQL */ `
     prefactura: Prefactura
     "Historial de estados (documento del pedido en MongoDB)."
     historial: [CambioEstado!]!
+    "Dirección de envío del pedido (la que tenía el cliente al comprar)."
+    envio: Direccion
   }
 
   enum ProveedorPago { PAYPAL MERCADOPAGO }
@@ -400,6 +418,10 @@ export const typeDefs = /* GraphQL */ `
     subidaImagenesDisponible: Boolean!
     "true si el backend tiene MOUSER_API_KEY."
     mouserDisponible: Boolean!
+    "true si el backend puede ubicar direcciones (HERE_API_KEY)."
+    mapasDisponible: Boolean!
+    "Requiere sesión. Ubica una dirección en el mapa (sin guardarla). null si HERE no la encontró."
+    ubicarDireccion(datos: DireccionInput!): Ubicacion
     "Solo ADMIN. Busca en el catálogo de Mouser por palabras o por número de parte."
     buscarEnMouser(texto: String!, porNumeroDeParte: Boolean = false, limite: Int = 10): [ParteMouser!]!
     "Kits que sabe armar el recomendador."

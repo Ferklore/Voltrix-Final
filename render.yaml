@@ -33,6 +33,8 @@ services:
         sync: false
       - key: GOOGLE_CLIENT_ID
         sync: false
+      - key: HERE_API_KEY
+        sync: false
       - key: RESEND_API_KEY
         sync: false
       - key: CORREO_REMITENTE

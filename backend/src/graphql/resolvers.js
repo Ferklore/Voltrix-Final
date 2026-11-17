@@ -7,13 +7,14 @@ import { confirmarPago, crearOrdenPaypal, pagarConTarjeta, proveedoresDisponible
 import { generarPrefactura, prefacturaDe } from '../cfdi/index.js'
 import { normalizarDatosFiscales } from '../cfdi/validar.js'
 import { REGIMENES, USOS_CFDI } from '../cfdi/catalogos.js'
-import { direccionDeFila, normalizarDireccion } from '../direccion.js'
+import { COLUMNAS_DIRECCION, direccionDeFila, normalizarDireccion } from '../direccion.js'
+import { ErrorMapas, geocodificar, mapasConfigurado, ubicacionParaGuardar } from '../mapas.js'
 import { avisarPedidoCreado, avisarStockBajo } from '../correo/avisos.js'
 import { coleccion } from '../mongo/conexion.js'
 import { borrarFicha, guardarFicha, normalizarFicha, obtenerFicha } from '../mongo/fichas.js'
 import { borrarResenasDeProducto, eliminarResena, guardarResena, listarResenas, normalizarResena, resumenResenas } from '../mongo/resenas.js'
 import { TIPOS_EVENTO, listarBitacora, registrar } from '../mongo/bitacora.js'
-import { historialPedido } from '../mongo/pedidos.js'
+import { direccionDePedido, historialPedido } from '../mongo/pedidos.js'
 import { listarKits, recomendarKit } from '../kits/recomendador.js'
 import { buscarProductos } from '../catalogo.js'
 import { GOOGLE_CLIENT_ID } from '../google.js'
@@ -69,6 +70,22 @@ export const resolvers = {
     googleClientId: () => GOOGLE_CLIENT_ID || null,
     subidaImagenesDisponible: () => cloudinaryConfigurado(),
     mouserDisponible: () => mouserConfigurado(),
+    mapasDisponible: () => mapasConfigurado(),
+    ubicarDireccion: async (_, { datos }, ctx) => {
+      requiereUsuario(ctx)
+      let d
+      try {
+        d = normalizarDireccion(datos)
+      } catch (err) {
+        throw errorDeNegocio(err.message, 'DIRECCION_INVALIDA')
+      }
+      try {
+        return await geocodificar(d)
+      } catch (err) {
+        if (err instanceof ErrorMapas) throw errorDeNegocio(err.message, 'MAPAS')
+        throw err
+      }
+    },
     buscarEnMouser: async (_, filtros, ctx) => {
       requiereAdmin(ctx)
       try {
@@ -281,9 +298,13 @@ export const resolvers = {
       } catch (err) {
         throw errorDeNegocio(err.message, 'DIRECCION_INVALIDA')
       }
+      // Pin del cliente si lo movió; si no, HERE. Sin ubicación se guarda igual.
+      const pin = datos.lat != null && datos.lng != null ? { lat: datos.lat, lng: datos.lng } : null
+      const u = await ubicacionParaGuardar(d, pin)
       await pool.query(
-        'UPDATE usuario SET calle = $1, colonia = $2, ciudad = $3, estado = $4, codigo_postal = $5 WHERE id = $6',
-        [d.calle, d.colonia, d.ciudad, d.estado, d.codigoPostal, usuario.id]
+        `UPDATE usuario SET calle = $1, colonia = $2, ciudad = $3, estado = $4, codigo_postal = $5, lat = $6, lng = $7
+          WHERE id = $8`,
+        [d.calle, d.colonia, d.ciudad, d.estado, d.codigoPostal, u?.lat ?? null, u?.lng ?? null, usuario.id]
       )
       return usuario
     },
@@ -332,6 +353,9 @@ export const resolvers = {
     crearPedido: async (_, { items }, ctx) => {
       const usuario = requiereUsuario(ctx)
       if (!items.length) throw errorDeNegocio('Tu carrito está vacío.', 'CARRITO_VACIO')
+      if (!(await uno('SELECT 1 AS si FROM usuario WHERE id = $1 AND calle IS NOT NULL', [usuario.id]))) {
+        throw errorDeNegocio('Captura tu dirección de envío en "Mi cuenta" antes de comprar.', 'SIN_DIRECCION')
+      }
 
       // Un producto repetido suma cantidades antes de validar contra el stock.
       const pedidas = new Map()
@@ -459,7 +483,7 @@ export const resolvers = {
     direccion: async (u, _, ctx) => {
       requiereUsuario(ctx)
       if (ctx.usuario.id !== u.id && ctx.usuario.rol !== 'ADMIN') return null
-      return direccionDeFila(await uno('SELECT calle, colonia, ciudad, estado, codigo_postal FROM usuario WHERE id = $1', [u.id]))
+      return direccionDeFila(await uno(`SELECT ${COLUMNAS_DIRECCION} FROM usuario WHERE id = $1`, [u.id]))
     },
     datosFiscales: async (u, _, ctx) => {
       requiereUsuario(ctx)
@@ -476,6 +500,12 @@ export const resolvers = {
     // Quien ve el pedido (dueño o ADMIN) ve su prefactura.
     prefactura: (p) => prefacturaDe(p),
     historial: (p) => historialPedido(p.id),
+    // La del documento del pedido (Mongo); si no hay, la dirección actual del cliente.
+    envio: async (p) => {
+      const guardada = await direccionDePedido(p.id)
+      if (guardada !== undefined) return guardada
+      return direccionDeFila(await uno(`SELECT ${COLUMNAS_DIRECCION} FROM usuario WHERE id = $1`, [p.usuario_id]))
+    },
   },
   Ficha: {
     actualizado: (f) => f.actualizado.toISOString(),

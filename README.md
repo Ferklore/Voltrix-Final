@@ -30,6 +30,7 @@ src/
   google.js             verifica el ID token de Google y crea/vincula la cuenta
   cloudinary.js         firma subidas de imágenes y respalda prefacturas en Cloudinary
   mouser.js             búsqueda en el catálogo de Mouser (caché y tope por minuto)
+  mapas.js              HERE Geocoding: dirección -> coordenadas (ubicación de envío)
   rutas/registro.js     POST /registro
   rutas/webhooks.js     POST /webhooks/mercadopago
   pagos/index.js        crear orden, cobrar y confirmar pagos (la lógica común)
@@ -73,6 +74,7 @@ migraciones/            cambios de esquema para una base existente, sin borrar n
   006-google.sql        google_sub y contraseña opcional (cuentas solo con Google)
   007-respaldo-prefactura.sql  dónde quedó la copia de la prefactura en Cloudinary
   008-lista-deseos.sql  lista de deseos (usuario, producto)
+  009-ubicacion.sql     lat/lng de la dirección de envío
 scripts/migrar.mjs      corre todas las migraciones en orden (npm run migrar)
 scripts/crear-admin.mjs
 test/api.test.js        prueba de punta a punta (OAuth, permisos, pedidos)
@@ -84,6 +86,7 @@ test/kits.test.js       recomendador: elegir kit y ajustar presupuesto (no neces
 test/google.test.js     verificación del ID token de Google con llaves propias
 test/cloudinary.test.js firma de Cloudinary (contra el ejemplo oficial) y URLs permitidas
 test/mouser.test.js     Mouser simulado: petición, normalización, precios, caché y límites
+test/mapas.test.js      HERE simulado: consulta, coordenadas en México, caché, pin del cliente
 test/mcp.test.js        cliente MCP real contra /mcp y por stdio (backend corriendo)
 test/deseos.test.js     lista de deseos: agregar, sin duplicados, privada, quitar (backend corriendo)
 ```
@@ -483,6 +486,22 @@ Después de cambiarle el rol a alguien, tiene que cerrar sesión y volver a entr
 | backend | `MP_ACCESS_TOKEN` | Access Token de Mercado Pago (de la misma cuenta) |
 | backend | `PAGOS_MODO` | `prueba` (por defecto; no cobra dinero real) o `produccion` |
 | frontend | `PUBLIC_API_URL` | `http://localhost:4000` |
+
+## Mapas: ubicación de envío (Leaflet + HERE)
+
+- **HERE Geocoding & Search** (backend, `src/mapas.js`): convierte la dirección
+  escrita en coordenadas con una consulta por partes (calle, colonia, ciudad,
+  estado, CP). La llave `HERE_API_KEY` nunca llega al navegador.
+- **Leaflet** (frontend, `components/Mapa.jsx`) dibuja el mapa con teselas de
+  OpenStreetMap y un pin.
+- **Mi cuenta:** "Ubicar en el mapa" pone el pin; si no quedó exacto, el
+  cliente lo arrastra o toca el mapa. Al guardar se usa ese pin (validado
+  dentro de México) o, si no hay, se ubica con HERE. Sin ubicación la
+  dirección se guarda igual.
+- **Checkout:** muestra a dónde se envía, con su mapa. Sin dirección no se
+  puede comprar (el backend también lo exige: `SIN_DIRECCION`).
+- **Admin → Pedidos:** la dirección de envío del pedido (la de ese momento,
+  guardada en MongoDB) con su mapa.
 
 ## Lista de deseos
 
