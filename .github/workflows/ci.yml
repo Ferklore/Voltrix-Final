@@ -187,15 +187,21 @@ jobs:
         if: env.RENDER_DEPLOY_HOOK_URL != ''
         run: curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL" > /dev/null && echo "Render recibió el despliegue."
 
-      - name: Esperar a que el backend responda
-        if: env.API_URL != ''
+      # No basta con que responda: mientras Render construye, la versión
+      # anterior sigue contestando. Se espera a que GET / reporte ESTE commit,
+      # para no publicar un frontend que necesite un backend que aún no está.
+      - name: Esperar a que el backend nuevo esté arriba
+        if: env.API_URL != '' && env.RENDER_DEPLOY_HOOK_URL != ''
         run: |
-          # Render tarda en construir y el plan gratis "duerme": hasta 10 min.
-          for i in $(seq 1 60); do
-            curl -sf "$API_URL/" > /dev/null && echo "Backend arriba." && exit 0
+          # Render tarda en construir y el plan gratis "duerme": hasta 15 min.
+          for i in $(seq 1 90); do
+            version=$(curl -sf -m 60 "$API_URL/" | jq -r '.version // empty' || true)
+            if [ "$version" = "$GITHUB_SHA" ]; then echo "Backend en ${GITHUB_SHA::7}."; exit 0; fi
+            echo "Esperando… backend en '${version:0:7}', se espera '${GITHUB_SHA::7}'"
             sleep 10
           done
-          echo "El backend no respondió a tiempo."; exit 1
+          echo "::error title=Despliegue::Render no llegó a ${GITHUB_SHA::7} a tiempo; el frontend no se publicó."
+          exit 1
 
       - name: Desplegar frontend (Netlify)
         if: env.NETLIFY_AUTH_TOKEN != ''

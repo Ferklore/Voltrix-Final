@@ -82,7 +82,10 @@ app.use(cors({ origin: ORIGENES, exposedHeaders: ['Content-Disposition'] }))
 app.use(express.json({ limit: '100kb' }))
 app.use(express.urlencoded({ extended: false, limit: '10kb' }))
 
-app.get('/', (_req, res) => res.json({ servicio: 'voltrix-backend', ok: true }))
+// Salud + versión: Render pone en RENDER_GIT_COMMIT el commit desplegado. El
+// pipeline espera a ver su propio commit aquí antes de publicar el frontend.
+const VERSION = process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || 'desarrollo'
+app.get('/', (_req, res) => res.json({ servicio: 'voltrix-backend', ok: true, version: VERSION }))
 app.use('/oauth', oauth)
 app.use('/registro', registro)
 app.use('/webhooks', webhooks)
