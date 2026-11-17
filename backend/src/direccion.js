@@ -29,8 +29,19 @@ export function normalizarDireccion(d) {
   return dir
 }
 
+// Columnas de la dirección en la tabla usuario (para los SELECT).
+export const COLUMNAS_DIRECCION = 'calle, colonia, ciudad, estado, codigo_postal, lat, lng'
+
 // Fila de la tabla usuario -> tipo Direccion de GraphQL (null si no tiene).
 export const direccionDeFila = (u) =>
   u?.calle
-    ? { calle: u.calle, colonia: u.colonia, ciudad: u.ciudad, estado: u.estado, codigoPostal: u.codigo_postal }
+    ? {
+        calle: u.calle,
+        colonia: u.colonia,
+        ciudad: u.ciudad,
+        estado: u.estado,
+        codigoPostal: u.codigo_postal,
+        lat: u.lat ?? null,
+        lng: u.lng ?? null,
+      }
     : null

@@ -6,12 +6,14 @@ import { gql } from '../../lib/sesion.js'
 import { PEDIDO_CAMBIO, useSuscripcion } from '../../lib/vivo.js'
 import { ESTADOS, PROVEEDORES } from './Resumen.jsx'
 import { descargarPrefactura } from '../../lib/prefactura.js'
+import Mapa from '../Mapa.jsx'
 
 const CAMPOS = `id fecha total status
     usuario { nombre email }
     pagos { proveedor estado idTransaccion }
     prefactura { serie folio valida errores }
     historial { status fecha }
+    envio { calle colonia ciudad estado codigoPostal lat lng }
     detalles { id cantidad subtotal producto { nombre } }`
 const PEDIDOS = `query ($status: StatusPedido) { pedidos(status: $status) { ${CAMPOS} } }`
 const EN_VIVO = PEDIDO_CAMBIO(CAMPOS)
@@ -130,6 +132,14 @@ export default function AdminPedidos() {
                             <li key={d.id}>{d.cantidad} × {d.producto.nombre}</li>
                           ))}
                         </ul>
+                        {p.envio && (
+                          <div className="envio-admin">
+                            <small>
+                              Enviar a: {p.envio.calle}, col. {p.envio.colonia}, {p.envio.ciudad}, {p.envio.estado}, CP {p.envio.codigoPostal}
+                            </small>
+                            {p.envio.lat != null && <Mapa lat={p.envio.lat} lng={p.envio.lng} alto={180} />}
+                          </div>
+                        )}
                         {p.historial.length > 0 && (
                           <ol className="historial-pedido" aria-label="Historial de estados">
                             {p.historial.map((h, i) => (
