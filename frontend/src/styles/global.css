@@ -568,13 +568,21 @@ a {
   left: -9999px;
 }
 
+/* Enlace "Saltar al contenido" (accesibilidad): solo aparece al enfocarlo con
+   Tab. Sólido y encima de la barra, para que no se mezcle con el logo. */
 .saltar:focus {
-  left: 16px;
-  top: 16px;
-  z-index: 10;
-  padding: 10px 16px;
-  background: var(--superficie);
+  left: 24px;
+  top: 24px;
+  z-index: 1000;
+  padding: 14px 24px;
+  background: var(--azul);
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
   border-radius: 999px;
+  box-shadow: 0 6px 18px rgb(29 78 216 / 35%);
+  outline: 3px solid var(--azul-borde);
+  outline-offset: 2px;
 }
 
 /* Pie */
