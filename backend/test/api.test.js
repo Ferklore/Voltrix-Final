@@ -5,6 +5,9 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 
 const BASE = process.env.BASE || 'http://localhost:4000'
+// Admin de prueba (el CI lo crea con npm run crear-admin).
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@voltrix.test'
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'AdminPrueba123'
 const CLIENT_ID = 'voltrix-web'
 const DIRECCION = { calle: 'Av. Siempre Viva 742', colonia: 'Centro', ciudad: 'Guadalajara', estado: 'Jalisco', codigoPostal: '44100' }
 
@@ -71,7 +74,7 @@ test('registro, OAuth password/refresh/revoke, permisos y pedido', async () => {
   assert.equal(await stock(), antes - 2)
 
   // Otro usuario no ve el pedido
-  const admin = await token({ grant_type: 'password', username: 'admin@voltrix.test', password: 'AdminPrueba123' })
+  const admin = await token({ grant_type: 'password', username: ADMIN_EMAIL, password: ADMIN_PASSWORD })
   if (!admin.error) {
     assert.ok((await gql(`{ pedido(id: ${r.data.crearPedido.id}) { id } }`, {}, admin.access_token)).data.pedido)
   }

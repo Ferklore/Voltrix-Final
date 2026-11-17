@@ -1,7 +1,8 @@
 # Dependabot abre pull requests cuando hay versiones nuevas de las
 # dependencias. Cada PR pasa por el pipeline de CI antes de poder unirse.
 # cooldown: espera 14 días antes de proponer una versión recién publicada,
-# por si sale con un error o un paquete comprometido.
+# por si sale con un error o un paquete comprometido. Las actualizaciones
+# menores llegan juntas en un solo PR por carpeta.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -11,6 +12,14 @@ updates:
     cooldown:
       default-days: 14
     open-pull-requests-limit: 5
+    # Las versiones mayores (p. ej. graphql 16 -> 17) cambian la API: se
+    # actualizan a mano, probando, no con un PR automático.
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+    groups:
+      menores:
+        update-types: [minor, patch]
   - package-ecosystem: npm
     directory: /frontend
     schedule:
@@ -18,6 +27,14 @@ updates:
     cooldown:
       default-days: 14
     open-pull-requests-limit: 5
+    # Las versiones mayores (p. ej. graphql 16 -> 17) cambian la API: se
+    # actualizan a mano, probando, no con un PR automático.
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+    groups:
+      menores:
+        update-types: [minor, patch]
   - package-ecosystem: github-actions
     directory: /
     schedule:

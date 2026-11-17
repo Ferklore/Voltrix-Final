@@ -102,6 +102,9 @@ test('MCP por stdio (Claude Desktop)', async () => {
     command: process.execPath,
     args: ['--env-file-if-exists=.env', 'scripts/mcp-stdio.mjs'],
     cwd: fileURLToPath(new URL('..', import.meta.url)),
+    // Por defecto el SDK solo pasa unas cuantas variables (PATH, HOME…); en CI
+    // no hay .env y DATABASE_URL viene del entorno, así que se pasa todo.
+    env: { ...process.env },
     stderr: 'ignore',
   })
   const c = new Client({ name: 'prueba-stdio', version: '1.0.0' })

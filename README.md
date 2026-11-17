@@ -108,7 +108,8 @@ push / pull request
    └─ (solo push a main y si los dos pasaron) desplegar:
                 migrar base de producción → deploy hook de Render → esperar backend
                 → netlify deploy --prod
-CodeQL: análisis de seguridad y calidad en cada push/PR a main y cada lunes.
+CodeQL: análisis de seguridad y calidad en cada push/PR a main y cada lunes
+        (repo público; actívalo en Settings → Code security → Code scanning).
 Dependabot: PRs semanales de dependencias (espera 14 días por versión nueva).
 ```
 
