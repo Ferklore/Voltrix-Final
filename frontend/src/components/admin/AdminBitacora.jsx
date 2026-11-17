@@ -25,9 +25,10 @@ const ETIQUETAS = {
   CORREO_ENVIADO: 'Correo enviado',
   CORREO_FALLIDO: 'Correo fallido',
   RESENA: 'Reseña',
+  RESPALDO_FALLIDO: 'Respaldo fallido',
 }
 // Los que conviene ver de un vistazo.
-const ALERTA = new Set(['PAGO_RECHAZADO', 'LOGIN_FALLIDO', 'CORREO_FALLIDO', 'PRODUCTO_ELIMINADO'])
+const ALERTA = new Set(['PAGO_RECHAZADO', 'LOGIN_FALLIDO', 'CORREO_FALLIDO', 'PRODUCTO_ELIMINADO', 'RESPALDO_FALLIDO'])
 
 export default function AdminBitacora() {
   const [tipo, setTipo] = useState('')

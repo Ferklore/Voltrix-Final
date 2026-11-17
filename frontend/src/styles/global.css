@@ -1661,3 +1661,166 @@ a.btn-texto {
   height: 1px;
   background: rgb(26 26 46 / 12%);
 }
+
+/* --- Subir imagen (Cloudinary) --- */
+.subir-imagen {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.subir-imagen-vista {
+  display: grid;
+  place-items: center;
+  width: 120px;
+  height: 120px;
+  overflow: hidden;
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+  background: var(--fondo);
+  border-radius: var(--radio-chico);
+  box-shadow: var(--clay-hundido);
+}
+
+.subir-imagen-vista img {
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  object-fit: contain;
+}
+
+.subir-imagen-campos {
+  display: grid;
+  gap: 8px;
+}
+
+.subir-imagen-boton {
+  justify-self: start;
+  cursor: pointer;
+}
+
+/* --- Importar desde Mouser --- */
+.importar-mouser {
+  margin-top: 18px;
+}
+
+.app-main .importar-mouser h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.importar-mouser-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 14px 0;
+}
+
+.importar-mouser-form input[type='search'] {
+  flex: 1;
+  min-width: 220px;
+  padding: 10px 16px;
+  font: inherit;
+  color: var(--texto);
+  background: var(--fondo);
+  border: 0;
+  border-radius: 999px;
+  box-shadow: var(--clay-hundido);
+}
+
+.importar-mouser-form .btn-primario {
+  margin-top: 0;
+}
+
+.mouser-miniatura {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  background: white;
+  border-radius: 8px;
+}
+
+/* --- Lista de deseos --- */
+.producto-card-envoltura {
+  position: relative;
+}
+
+.producto-card-deseo {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+}
+
+.boton-deseo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px;
+  color: var(--texto-suave);
+  background: var(--superficie);
+  border-radius: 999px;
+  box-shadow: var(--clay);
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.boton-deseo:hover {
+  color: var(--rojo);
+}
+
+.boton-deseo:active {
+  transform: scale(0.92);
+}
+
+.boton-deseo.activo {
+  color: var(--rojo);
+}
+
+.boton-deseo.con-texto {
+  margin-top: 12px;
+  padding: 9px 16px;
+  font-size: 0.9rem;
+}
+
+.boton-deseo:disabled {
+  opacity: 0.5;
+}
+
+.lista-deseos .carrito-item {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.lista-deseos-img {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radio-chico);
+  background: var(--fondo);
+  box-shadow: var(--clay-hundido);
+  overflow: hidden;
+}
+
+.lista-deseos-img img {
+  width: 100%;
+  height: 100%;
+  padding: 6px;
+  object-fit: contain;
+}
+
+.lista-deseos-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.lista-deseos-info a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.lista-deseos .pedido-acciones {
+  margin-top: 0;
+}

@@ -17,6 +17,9 @@ export default function MenuUsuario() {
           Panel admin
         </a>
       )}
+      <a className="nav-boton" href="/deseos" title="Mi lista de deseos" aria-label="Mi lista de deseos">
+        ♡
+      </a>
       <a className="nav-boton" href="/cuenta">
         {sesion.usuario?.nombre.split(' ')[0] || 'Mi cuenta'}
       </a>

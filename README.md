@@ -28,6 +28,8 @@ src/
   auth.js               scrypt, tokens OAuth 2.0, bloqueo por intentos
   rutas/oauth.js        POST /oauth/token, /oauth/google y /oauth/revoke
   google.js             verifica el ID token de Google y crea/vincula la cuenta
+  cloudinary.js         firma subidas de imágenes y respalda prefacturas en Cloudinary
+  mouser.js             búsqueda en el catálogo de Mouser (caché y tope por minuto)
   rutas/registro.js     POST /registro
   rutas/webhooks.js     POST /webhooks/mercadopago
   pagos/index.js        crear orden, cobrar y confirmar pagos (la lógica común)
@@ -69,6 +71,8 @@ migraciones/            cambios de esquema para una base existente, sin borrar n
   004-direccion-ofertas.sql  dirección del usuario y precio_anterior (ofertas)
   005-recuperar-password.sql tokens de recuperación de contraseña
   006-google.sql        google_sub y contraseña opcional (cuentas solo con Google)
+  007-respaldo-prefactura.sql  dónde quedó la copia de la prefactura en Cloudinary
+  008-lista-deseos.sql  lista de deseos (usuario, producto)
 scripts/migrar.mjs      corre todas las migraciones en orden (npm run migrar)
 scripts/crear-admin.mjs
 test/api.test.js        prueba de punta a punta (OAuth, permisos, pedidos)
@@ -78,7 +82,10 @@ test/correo.test.js     plantillas de correo y modo consola (no necesita la base
 test/mongo.test.js      validaciones de fichas y reseñas; todo apagado sin Mongo
 test/kits.test.js       recomendador: elegir kit y ajustar presupuesto (no necesita la base)
 test/google.test.js     verificación del ID token de Google con llaves propias
+test/cloudinary.test.js firma de Cloudinary (contra el ejemplo oficial) y URLs permitidas
+test/mouser.test.js     Mouser simulado: petición, normalización, precios, caché y límites
 test/mcp.test.js        cliente MCP real contra /mcp y por stdio (backend corriendo)
+test/deseos.test.js     lista de deseos: agregar, sin duplicados, privada, quitar (backend corriendo)
 ```
 
 ## Frontend (`frontend/`)
@@ -476,6 +483,47 @@ Después de cambiarle el rol a alguien, tiene que cerrar sesión y volver a entr
 | backend | `MP_ACCESS_TOKEN` | Access Token de Mercado Pago (de la misma cuenta) |
 | backend | `PAGOS_MODO` | `prueba` (por defecto; no cobra dinero real) o `produccion` |
 | frontend | `PUBLIC_API_URL` | `http://localhost:4000` |
+
+## Lista de deseos
+
+- Corazón ♡ en cada tarjeta y en la página del producto; todos los corazones
+  de la página se actualizan juntos (`lib/deseos.js`). Sin sesión, lleva al login.
+- `/deseos`: lo guardado con precio y stock de hoy (y la oferta si la hay),
+  para pasarlo al carrito o quitarlo. Acceso desde el ♡ de la barra superior y el pie.
+- Es privada: ni un ADMIN ve la lista de otro cliente. Tabla `lista_deseos`
+  en PostgreSQL; si se borra el producto, sale de las listas.
+
+## Importar componentes desde Mouser
+
+En *Admin → Productos → Importar desde Mouser* se busca en el catálogo de
+Mouser (Search API) por palabras o por número de parte. Al importar una pieza
+se abre "Nuevo producto" ya lleno:
+
+- **Nombre:** fabricante + número de parte; **descripción** de Mouser.
+- **Precio sugerido (MXN):** precio de 1 pieza en USD × `MOUSER_TIPO_CAMBIO` ×
+  `MOUSER_MARGEN` × IVA, redondeado al peso. El admin lo ajusta.
+- **Imagen:** se copia a Cloudinary (no se enlaza la de mouser.com).
+- **Ficha técnica (MongoDB):** los atributos de Mouser como especificaciones y el datasheet.
+- Stock en 0: el inventario propio lo captura el admin.
+
+La llave gratis permite ~1000 búsquedas al día: hay caché de 10 minutos, tope
+de 25 búsquedas por minuto y solo un ADMIN puede buscar. Sin `MOUSER_API_KEY`
+el botón no aparece.
+
+## Archivos en Cloudinary
+
+- **Imágenes de productos:** en *Admin → Productos*, "Subir imagen". El
+  backend firma la subida (`firmarSubidaImagen`) y el navegador sube el
+  archivo **directo a Cloudinary**: el secreto nunca sale del backend y la
+  imagen no pasa por nuestro servidor. Máx. 5 MB; Cloudinary la limita a 1600 px.
+- **Imágenes optimizadas:** el catálogo pide a Cloudinary la versión del tamaño
+  justo y en WebP/AVIF (`f_auto,q_auto,w_…`).
+- **Respaldo de prefacturas:** al generarse, el XML y el PDF se copian a
+  Cloudinary como archivos privados (`authenticated`), en `voltrix/prefacturas`.
+  Sin firma, Cloudinary responde 401; en la base solo se guarda el `public_id`
+  (no la URL firmada). Se consultan desde el Media Library de Cloudinary.
+- Solo se aceptan imágenes con ruta de la tienda (`/productos/…`) o de `res.cloudinary.com`.
+- Sin `CLOUDINARY_URL` el botón no aparece y no se respalda nada.
 
 ## Login con Google
 

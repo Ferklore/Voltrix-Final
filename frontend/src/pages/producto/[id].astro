@@ -2,9 +2,11 @@
 import Base from '../../layouts/Base.astro'
 import AgregarAlCarrito from '../../components/AgregarAlCarrito.jsx'
 import Resenas from '../../components/Resenas.jsx'
+import BotonDeseo from '../../components/BotonDeseo.jsx'
 import Estrellas from '../../components/Estrellas.astro'
 import { idValido, producto } from '../../lib/api.js'
 import { dinero } from '../../lib/carrito.js'
+import { urlImagen } from '../../lib/imagen.js'
 
 const id = idValido(Astro.params.id)
 const p = id && (await producto(id))
@@ -14,7 +16,7 @@ if (!p) return Astro.rewrite('/404')
   {p.categoria && <a class="volver" href={`/categoria/${p.categoria.id}`}>← {p.categoria.nombre}</a>}
   <section class="producto-detalle">
     <div class="producto-detalle-img">
-      {p.imagen && <img src={p.imagen} alt={p.nombre} width="260" height="260" />}
+      {p.imagen && <img src={urlImagen(p.imagen, 600)} alt={p.nombre} width="260" height="260" />}
     </div>
     <div class="producto-detalle-info">
       <h1>{p.nombre}</h1>
@@ -33,6 +35,7 @@ if (!p) return Astro.rewrite('/404')
       {p.especificaciones && <p class="especificaciones">{p.especificaciones}</p>}
       <p class="stock">{p.stock > 0 ? `${p.stock} disponibles` : 'Sin existencias'}</p>
       <AgregarAlCarrito client:load producto={{ id: Number(p.id), nombre: p.nombre, precio: p.precio, imagen: p.imagen, stock: p.stock }} />
+      <BotonDeseo client:load productoId={p.id} nombre={p.nombre} conTexto />
     </div>
   </section>
 

@@ -17,6 +17,8 @@ import { historialPedido } from '../mongo/pedidos.js'
 import { listarKits, recomendarKit } from '../kits/recomendador.js'
 import { buscarProductos } from '../catalogo.js'
 import { GOOGLE_CLIENT_ID } from '../google.js'
+import { cloudinaryConfigurado, copiarImagenRemota, firmaSubidaImagen, imagenPermitida } from '../cloudinary.js'
+import { ErrorMouser, buscarEnMouser, esImagenDeMouser, mouserConfigurado } from '../mouser.js'
 
 // Error de negocio: el código le dice al front que puede mostrar el mensaje.
 const errorDeNegocio = (mensaje, code) => new GraphQLError(mensaje, { extensions: { code } })
@@ -65,6 +67,17 @@ export const resolvers = {
     tiposBitacora: () => TIPOS_EVENTO,
     kits: () => listarKits(),
     googleClientId: () => GOOGLE_CLIENT_ID || null,
+    subidaImagenesDisponible: () => cloudinaryConfigurado(),
+    mouserDisponible: () => mouserConfigurado(),
+    buscarEnMouser: async (_, filtros, ctx) => {
+      requiereAdmin(ctx)
+      try {
+        return await buscarEnMouser(filtros)
+      } catch (err) {
+        if (err instanceof ErrorMouser) throw errorDeNegocio(err.message, 'MOUSER')
+        throw err
+      }
+    },
     recomendarKit: (_, { proyecto, kitId, presupuesto }) => {
       if (!proyecto?.trim() && !kitId) throw errorDeNegocio('Describe tu proyecto o elige un kit.', 'KIT_SIN_DATOS')
       if (proyecto && proyecto.length > 500) throw errorDeNegocio('Describe tu proyecto en menos de 500 caracteres.', 'KIT_SIN_DATOS')
@@ -83,6 +96,41 @@ export const resolvers = {
   },
 
   Mutation: {
+    agregarADeseos: async (_, { productoId }, ctx) => {
+      const usuario = requiereUsuario(ctx)
+      const producto = await uno('SELECT * FROM producto WHERE id = $1', [productoId])
+      if (!producto) throw errorDeNegocio('Ese producto no existe.', 'PRODUCTO_NO_EXISTE')
+      await pool.query(
+        'INSERT INTO lista_deseos (usuario_id, producto_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [usuario.id, producto.id]
+      )
+      return producto
+    },
+
+    quitarDeDeseos: async (_, { productoId }, ctx) => {
+      const usuario = requiereUsuario(ctx)
+      const { rowCount } = await pool.query('DELETE FROM lista_deseos WHERE usuario_id = $1 AND producto_id = $2', [usuario.id, productoId])
+      return rowCount > 0
+    },
+
+    importarImagenMouser: async (_, { url }, ctx) => {
+      requiereAdmin(ctx)
+      if (!cloudinaryConfigurado()) throw errorDeNegocio('Para importar imágenes configura CLOUDINARY_URL.', 'CLOUDINARY_NO_CONFIGURADO')
+      if (!esImagenDeMouser(url)) throw errorDeNegocio('Solo se importan imágenes de mouser.com.', 'IMAGEN_INVALIDA')
+      try {
+        return await copiarImagenRemota(url, esImagenDeMouser)
+      } catch (err) {
+        throw errorDeNegocio(`No se pudo copiar la imagen: ${err.message}`, 'IMAGEN_INVALIDA')
+      }
+    },
+
+    firmarSubidaImagen: (_, __, ctx) => {
+      requiereAdmin(ctx)
+      const firma = firmaSubidaImagen()
+      if (!firma) throw errorDeNegocio('La subida de imágenes no está configurada (CLOUDINARY_URL).', 'CLOUDINARY_NO_CONFIGURADO')
+      return firma
+    },
+
     guardarFicha: async (_, { productoId, datos }, ctx) => {
       requiereAdmin(ctx)
       if (!(await uno('SELECT 1 AS ok FROM producto WHERE id = $1', [productoId]))) {
@@ -374,6 +422,8 @@ export const resolvers = {
     descuento: (p) => (enOferta(p) ? Math.round((1 - p.precio / p.precio_anterior) * 100) : 0),
     claveProdServ: (p) => p.clave_prod_serv || '01010101',
     ficha: (p) => obtenerFicha(p.id),
+    enMiLista: async (p, _, ctx) =>
+      Boolean(ctx.usuario && (await uno('SELECT 1 AS si FROM lista_deseos WHERE usuario_id = $1 AND producto_id = $2', [ctx.usuario.id, p.id]))),
     calificacion: (p) => resumenResenas(p.id),
     resenas: (p, { limite }) => listarResenas(p.id, limite),
     // buscarProductos ya lo trae calculado; las demás consultas lo piden aparte.
@@ -395,6 +445,16 @@ export const resolvers = {
       requiereUsuario(ctx)
       if (ctx.usuario.id !== u.id && ctx.usuario.rol !== 'ADMIN') return []
       return varios('SELECT * FROM pedido WHERE usuario_id = $1 ORDER BY id DESC', [u.id])
+    },
+    listaDeseos: (u, _, ctx) => {
+      requiereUsuario(ctx)
+      // Es privada: ni un ADMIN ve la lista de otro.
+      if (ctx.usuario.id !== u.id) return []
+      return varios(
+        `SELECT p.* FROM lista_deseos l JOIN producto p ON p.id = l.producto_id
+          WHERE l.usuario_id = $1 ORDER BY l.creado DESC`,
+        [u.id]
+      )
     },
     direccion: async (u, _, ctx) => {
       requiereUsuario(ctx)
@@ -436,6 +496,7 @@ export const resolvers = {
   Prefactura: {
     fecha: (f) => f.fecha.toISOString(),
     receptorRfc: (f) => f.receptor_rfc,
+    respaldada: (f) => Boolean(f.respaldo),
   },
   Pago: {
     idTransaccion: (p) => p.id_transaccion,
@@ -460,6 +521,9 @@ function validarProducto(datos) {
   if (!(precio >= 0)) throw errorDeNegocio('El precio no puede ser negativo.', 'PRODUCTO_INVALIDO')
   if (precioAnterior != null && !(precioAnterior > precio)) {
     throw errorDeNegocio('El precio anterior tiene que ser mayor que el precio de oferta.', 'PRODUCTO_INVALIDO')
+  }
+  if (!imagenPermitida(datos.imagen?.trim())) {
+    throw errorDeNegocio('La imagen debe ser una ruta de la tienda (/productos/…) o una URL de Cloudinary.', 'PRODUCTO_INVALIDO')
   }
   const clave = datos.claveProdServ?.trim() || null
   if (clave && !/^\d{8}$/.test(clave)) {
