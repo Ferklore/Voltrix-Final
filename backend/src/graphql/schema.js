@@ -281,6 +281,8 @@ export const typeDefs = /* GraphQL */ `
     requiereFactura: Boolean!
     "Historial de estados (documento del pedido en MongoDB)."
     historial: [CambioEstado!]!
+    "Estados a los que un ADMIN puede mover el pedido desde el actual."
+    estadosSiguientes: [StatusPedido!]!
     "Dirección de envío del pedido (la que tenía el cliente al comprar)."
     envio: Direccion
   }

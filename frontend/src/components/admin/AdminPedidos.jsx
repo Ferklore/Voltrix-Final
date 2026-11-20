@@ -1,4 +1,5 @@
-// Gestión de pedidos: filtrar por estado y moverlos (Pagado -> Enviado -> Entregado).
+// Gestión de pedidos: filtrar por estado y moverlos (Pagado -> Enviado -> Entregado,
+// o cancelar antes del envío). El backend dice a qué estados puede pasar cada uno.
 // En vivo: los pedidos nuevos, pagos y cambios de otros admins llegan solos.
 import { useEffect, useState } from 'react'
 import { dinero } from '../../lib/carrito.js'
@@ -8,7 +9,7 @@ import { ESTADOS, PROVEEDORES } from './Resumen.jsx'
 import { descargarPrefactura } from '../../lib/prefactura.js'
 import Mapa from '../Mapa.jsx'
 
-const CAMPOS = `id fecha total status
+const CAMPOS = `id fecha total status estadosSiguientes
     usuario { nombre email }
     pagos { proveedor estado idTransaccion }
     prefactura { serie folio valida errores }
@@ -18,7 +19,7 @@ const CAMPOS = `id fecha total status
 const PEDIDOS = `query ($status: StatusPedido) { pedidos(status: $status) { ${CAMPOS} } }`
 const EN_VIVO = PEDIDO_CAMBIO(CAMPOS)
 const CAMBIAR = `mutation ($id: ID!, $status: StatusPedido!) {
-  cambiarStatusPedido(id: $id, status: $status) { id status }
+  cambiarStatusPedido(id: $id, status: $status) { id status estadosSiguientes }
 }`
 
 const piezas = (detalles) => {
@@ -66,7 +67,7 @@ export default function AdminPedidos() {
       const { cambiarStatusPedido } = await gql(CAMBIAR, { id: pedido.id, status })
       setPedidos((lista) =>
         lista
-          .map((p) => (p.id === pedido.id ? { ...p, status: cambiarStatusPedido.status } : p))
+          .map((p) => (p.id === pedido.id ? { ...p, ...cambiarStatusPedido } : p))
           // Si hay filtro y ya no coincide, sale de la lista.
           .filter((p) => !filtro || p.status === filtro)
       )
@@ -176,12 +177,13 @@ export default function AdminPedidos() {
                     <td>
                       <select
                         value={p.status}
-                        disabled={p.status === 'CANCELADO'}
+                        disabled={!p.estadosSiguientes?.length}
                         onChange={(e) => cambiar(p, e.target.value)}
                         aria-label={`Estado del pedido ${p.id}`}
                       >
-                        {Object.entries(ESTADOS).map(([valor, texto]) => (
-                          <option key={valor} value={valor}>{texto}</option>
+                        {/* Solo el estado actual y a los que puede avanzar. */}
+                        {[p.status, ...(p.estadosSiguientes ?? [])].map((valor) => (
+                          <option key={valor} value={valor}>{ESTADOS[valor]}</option>
                         ))}
                       </select>
                     </td>

@@ -471,7 +471,7 @@ consultas aunque escriba la URL o use Apollo Sandbox.
 | Sección | Para qué |
 |--|--|
 | Resumen | Ventas totales, ticket promedio, pedidos por enviar / esperando pago, clientes, gráfica de ventas por día, pedidos por estado, cobrado por PayPal vs Mercado Pago, más vendidos y stock bajo (`resumenAdmin`) |
-| Pedidos | Filtrar por estado y moverlos: Pagado → Enviado → Entregado. Cancelar devuelve el stock |
+| Pedidos | Filtrar por estado y moverlos solo en orden: Pagado → Enviado → Entregado. Cancelar (antes del envío) devuelve el stock. Pendiente → Pagado a mano solo en modo de prueba |
 | Productos | Alta, edición y baja (si ya tiene pedidos, mejor dejar el stock en 0) |
 | Usuarios | Lista con pedidos y lo comprado; cambiar rol Cliente/Admin (no el tuyo) |
 

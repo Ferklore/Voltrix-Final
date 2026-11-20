@@ -73,3 +73,29 @@ test('factura opcional: público en general salvo que el pedido la pida', async 
     for (const id of pedidos) await gql(CANCELAR, { id }, A)
   }
 })
+
+test('el admin mueve el pedido solo en orden: Pagado -> Enviado -> Entregado', async (t) => {
+  const admin = await token(ADMIN_EMAIL, ADMIN_PASSWORD)
+  if (admin.error) return t.skip(`no existe ${ADMIN_EMAIL}`)
+  const A = admin.access_token
+  const registro = await fetch(`${BASE}/registro`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nombre: 'Estados', email: `estados${Date.now()}@voltrix.test`, password: 'contraseña-segura', direccion: DIRECCION }),
+  }).then((r) => r.json())
+  const { id } = (await gql(PEDIR, { f: false }, registro.access_token)).data.crearPedido
+
+  const mover = (status) =>
+    gql('mutation ($id: ID!, $s: StatusPedido!) { cambiarStatusPedido(id: $id, status: $s) { status estadosSiguientes } }', { id, s: status }, A)
+  const rechazado = async (status) => assert.equal((await mover(status)).errors?.[0].extensions.code, 'TRANSICION_INVALIDA', status)
+
+  await rechazado('ENVIADO') // sin pagar no se envía
+  assert.deepEqual((await mover('PAGADO')).data.cambiarStatusPedido.estadosSiguientes, ['ENVIADO', 'CANCELADO']) // modo prueba
+  await rechazado('ENTREGADO') // no se salta Enviado
+  await rechazado('PENDIENTE') // no regresa
+  assert.equal((await mover('ENVIADO')).data.cambiarStatusPedido.status, 'ENVIADO')
+  await rechazado('CANCELADO') // ya salió: no se cancela ni devuelve stock
+  const final = (await mover('ENTREGADO')).data.cambiarStatusPedido
+  assert.deepEqual(final, { status: 'ENTREGADO', estadosSiguientes: [] })
+  await rechazado('PAGADO')
+})

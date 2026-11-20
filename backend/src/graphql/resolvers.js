@@ -1,7 +1,7 @@
 // Resolvers: el código que responde cada campo del esquema contra PostgreSQL.
 import { GraphQLError } from 'graphql'
 import { pool } from '../db.js'
-import { cancelarPedido } from '../pedidos.js'
+import { cancelarPedido, estadosSiguientes } from '../pedidos.js'
 import { PEDIDO_CAMBIO, PRODUCTO_CAMBIO, publicarPedido, publicarProducto, publicarStock, pubsub } from '../eventos.js'
 import { confirmarPago, crearOrdenPaypal, pagarConTarjeta, proveedoresDisponibles } from '../pagos/index.js'
 import { generarPrefactura, prefacturaDe } from '../cfdi/index.js'
@@ -327,8 +327,13 @@ export const resolvers = {
       if (actual.status === 'CANCELADO') {
         throw errorDeNegocio('Un pedido cancelado ya devolvió su stock; no se puede reactivar.', 'PEDIDO_CANCELADO')
       }
+      if (!estadosSiguientes(actual.status).includes(status)) {
+        throw errorDeNegocio(mensajeTransicion(actual.status, status), 'TRANSICION_INVALIDA')
+      }
       if (status === 'CANCELADO') return cancelarPedido(id)
-      const pedido = await uno('UPDATE pedido SET status = $1 WHERE id = $2 RETURNING *', [status, id])
+      // "AND status = $3": si otro admin lo movió mientras tanto, no se pisa.
+      const pedido = await uno('UPDATE pedido SET status = $1 WHERE id = $2 AND status = $3 RETURNING *', [status, id, actual.status])
+      if (!pedido) throw errorDeNegocio('El pedido cambió mientras tanto; recarga la lista e intenta de nuevo.', 'TRANSICION_INVALIDA')
       publicarPedido('ACTUALIZADO', pedido)
       return pedido
     },
@@ -510,6 +515,7 @@ export const resolvers = {
     // Quien ve el pedido (dueño o ADMIN) ve su prefactura.
     prefactura: (p) => prefacturaDe(p),
     historial: (p) => historialPedido(p.id),
+    estadosSiguientes: (p) => estadosSiguientes(p.status),
     requiereFactura: (p) => Boolean(p.requiere_factura),
     // La del documento del pedido (Mongo); si no hay, la dirección actual del cliente.
     envio: async (p) => {
@@ -562,6 +568,16 @@ const sinMongo = () =>
   errorDeNegocio('Esta función necesita MongoDB y no está disponible ahora. Intenta más tarde.', 'MONGO_NO_DISPONIBLE')
 
 const enOferta = (p) => p.precio_anterior != null && p.precio_anterior > p.precio
+
+const NOMBRE_ESTADO = { PENDIENTE: 'Pendiente', PAGADO: 'Pagado', ENVIADO: 'Enviado', ENTREGADO: 'Entregado', CANCELADO: 'Cancelado' }
+function mensajeTransicion(desde, hacia) {
+  if (desde === 'PENDIENTE' && hacia === 'PAGADO') return 'Un pedido pasa a Pagado solo cuando el proveedor de pagos confirma el cobro.'
+  if (hacia === 'CANCELADO') return `Un pedido ${NOMBRE_ESTADO[desde].toLowerCase()} ya no se puede cancelar.`
+  const siguientes = estadosSiguientes(desde).map((s) => NOMBRE_ESTADO[s])
+  return siguientes.length
+    ? `Un pedido ${NOMBRE_ESTADO[desde].toLowerCase()} solo puede pasar a: ${siguientes.join(' o ')}.`
+    : `Un pedido ${NOMBRE_ESTADO[desde].toLowerCase()} ya no cambia de estado.`
+}
 
 // Valida lo que manda el formulario de productos del admin.
 function validarProducto(datos) {
