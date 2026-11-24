@@ -12,14 +12,14 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@astrojs/netlify": "^8.2.6",
-    "@astrojs/react": "^7.0.0",
+    "@astrojs/netlify": "^8.2.12",
+    "@astrojs/react": "^7.1.5",
     "@mercadopago/sdk-react": "^1.0.7",
-    "@paypal/react-paypal-js": "^10.5.2",
-    "astro": "^7.3.5",
-    "graphql-ws": "^6.4.1",
+    "@paypal/react-paypal-js": "^10.6.1",
+    "astro": "^7.4.8",
+    "graphql-ws": "^6.4.2",
     "leaflet": "1.9.4",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }
