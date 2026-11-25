@@ -63,6 +63,11 @@ export default function FormSesion({ modo = 'login' }) {
         </p>
       )}
       {registro && <CamposDireccion />}
+      {registro && (
+        <p className="form-alterno">
+          Al crear tu cuenta aceptas el <a href="/privacidad">aviso de privacidad</a>.
+        </p>
+      )}
       {error && (
         <p className="error" role="alert">
           {error}

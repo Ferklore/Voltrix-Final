@@ -1,6 +1,12 @@
-# Aviso de privacidad integral — Voltrix (borrador)
+# Aviso de privacidad integral — Voltrix
 
-> **Estado:** borrador para revisión del equipo y del asesor. No está publicado en la tienda: /privacidad responde 404 (desviación D-10 del SRS). Los campos entre corchetes los debe completar el equipo. La lista de datos y de proveedores sale del código del commit 2b8df49; si el código cambia, este aviso debe revisarse. Antes de usarlo fuera del curso, compárese con el texto vigente de la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) y sus lineamientos.
+<!-- Fuente única del aviso: la página /privacidad (src/pages/privacidad.astro) lo
+     muestra tal cual. Los campos entre corchetes los completa el equipo. La lista
+     de datos y de proveedores sale del código; si el código cambia, revisar este
+     aviso. Antes de operar comercialmente, compararlo con el texto vigente de la
+     LFPDPPP y sus lineamientos (desviación D-10 del SRS). -->
+
+> Voltrix es un proyecto académico en modo de prueba. Los datos entre corchetes se completarán antes de operar comercialmente.
 
 Fecha de última actualización: [DD/MM/AAAA]
 
