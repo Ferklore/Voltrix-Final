@@ -25,6 +25,18 @@ El SRS v2.0 describe y verifica el código de este commit. Cualquier persona pue
 
 El backend reporta su versión en `GET /` (backend/src/index.js:88), y el paso «Esperar a que el backend nuevo esté arriba» del CI no publica el frontend hasta que esa versión es igual a `GITHUB_SHA`. Por eso la versión que responde Render es evidencia de qué código está desplegado.
 
+## Cambios de código posteriores a 2b8df49
+
+La rama `docs/srs-v2` parte de `2b8df49` y agrega estas correcciones. El SRS v2.0 y TRAZABILIDAD.md citan las líneas de esta rama. Producción sigue en `2b8df49` hasta que la rama se fusione en main y el pipeline la despliegue.
+
+| Commit | Cambio | Requisito |
+|---|---|---|
+| `88c8165` | `GOOGLE_CLIENT_ID=` en backend/.env.example | RNF-113 |
+| `ee71a71` | El servidor rechaza imágenes de Cloudinary de más de 5 MB al guardar un producto; PA-53 mide el umbral de 2 s | RNF-92, RNF-82 |
+| `9a48e8e` | Página /privacidad con el aviso de privacidad y enlaces desde el pie de página y el registro | D-10 |
+
+Corrida de CI de la rama: https://github.com/FieldRayo/Voltrix-Final/actions/runs/45562259035 (commit `9a48e8e`, success; despliegue omitido porque la rama no es main).
+
 ## Documento evaluado
 
 | Dato | Valor |

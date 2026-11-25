@@ -1,12 +1,14 @@
 # Registro de verificación — Voltrix
 
-Versión 2.0 · 25 de noviembre de 2026 · código verificado: commit 2b8df49 (EVIDENCIA_COMMIT.md).
+Versión 2.0 · 25 de noviembre de 2026 · código verificado: commit 2b8df49 y rama docs/srs-v2 (EVIDENCIA_COMMIT.md).
 
 Este documento registra **qué se ejecutó, cuándo y con qué resultado**. Las definiciones de cada verificación (qué comprueba y qué resultado se espera) están en el Apéndice F del SRS, y la relación con cada requerimiento, en TRAZABILIDAD.md. Aquí no se declara cumplido nada que no se haya ejecutado: lo pendiente aparece como pendiente.
 
 ## 1. Pruebas automatizadas (PA)
 
 Fuente: corrida 44674351700 del workflow CI/CD sobre el commit 2b8df49 (https://github.com/Ferklore/Voltrix-Final/actions/runs/44674351700), 2026-11-20 04:25:54 UTC. Totales del log: pruebas unitarias 51 de 51 pasan; punta a punta 8, de las cuales 7 pasan y 1 se omite; frontend 1 de 1 pasa. Ninguna falla.
+
+Segunda fuente, para las correcciones de v2.0: corrida 45562259035 sobre la rama docs/srs-v2 del fork (https://github.com/FieldRayo/Voltrix-Final/actions/runs/45562259035, commit 9a48e8e), 2026-11-25 06:39 a 06:40 UTC. Totales: unitarias 52 de 52 pasan (incluida PA-66); punta a punta 8, de las cuales 7 pasan y 1 se omite (la misma PA-55); frontend 1 de 1 pasa y el build compila; el despliegue se omite porque la rama no es main. Las pruebas PA-01 a PA-60 pasaron en ambas corridas.
 
 | ID | Archivo:línea | Prueba | Resultado en CI |
 |---|---|---|---|
@@ -62,7 +64,7 @@ Fuente: corrida 44674351700 del workflow CI/CD sobre el commit 2b8df49 (https://
 | PA-50 | backend/test/estados-pedido.test.js:9 | Pagado -> Enviado -> Entregado, y cancelar solo antes del envío | Pasó |
 | PA-51 | backend/test/estados-pedido.test.js:16 | Pendiente -> Pagado a mano solo en modo de prueba | Pasó |
 | PA-52 | backend/test/api.test.js:30 | registro, OAuth password/refresh/revoke, permisos y pedido | Pasó |
-| PA-53 | backend/test/subscripciones.test.js:60 | solo un ADMIN puede suscribirse y recibe los cambios de pedidos en vivo | Pasó |
+| PA-53 | backend/test/subscripciones.test.js:60 | solo un ADMIN puede suscribirse y recibe los cambios de pedidos en vivo | Pasó. En la corrida 45562259035, con la medición de v2.0: «RNF-82 pedido nuevo: 9 ms» y «RNF-82 cambio de estado: 5 ms» |
 | PA-54 | backend/test/mcp.test.js:34 | MCP por HTTP sin token: catálogo, kits, recursos y prompt | Pasó |
 | PA-55 | backend/test/mcp.test.js:74 | MCP por HTTP: token inválido es 401; con token salen los pedidos | Omitida (SKIP «sin MCP_EMAIL/MCP_PASSWORD»). Las aserciones anteriores al t.skip (401 con token inválido y 405 en GET /mcp, mcp.test.js:80-81) sí se ejecutaron; la parte con token válido no. |
 | PA-56 | backend/test/mcp.test.js:100 | MCP por stdio (Claude Desktop) | Pasó |
@@ -70,6 +72,7 @@ Fuente: corrida 44674351700 del workflow CI/CD sobre el commit 2b8df49 (https://
 | PA-58 | backend/test/facturacion.test.js:32 | factura opcional: público en general salvo que el pedido la pida | Pasó |
 | PA-59 | backend/test/facturacion.test.js:77 | el admin mueve el pedido solo en orden: Pagado -> Enviado -> Entregado | Pasó |
 | PA-60 | frontend/test/carrito.test.js:6 | carrito: suma repetidos y respeta el stock | Pasó |
+| PA-66 | backend/test/cloudinary.test.js:40 | imagen de más de 5 MB: se rechaza al guardar el producto (RNF-92) | Pasó (corrida 45562259035) |
 | PA-61 | .github/workflows/ci.yml | Validar (sintaxis, esquema GraphQL, migraciones, XSD): npm run validar | Pasó (paso en verde en la corrida) |
 | PA-62 | .github/workflows/ci.yml | npm audit --omit=dev --audit-level=high (backend) | Pasó (paso en verde en la corrida) |
 | PA-63 | .github/workflows/ci.yml | Preparar base de datos: psql -f db.sql y npm run migrar | Pasó (paso en verde en la corrida) |
@@ -122,6 +125,7 @@ Las ejecutó la auditoría con curl desde fuera de la red del proyecto. Las pend
 | PM-36 | RF-43; RNF-77 |  |  | Pendiente |  |
 | PM-37 | RF-65 |  |  | Pendiente |  |
 | PM-38 | Sección 2.5 (supuesto de bases de datos) |  |  | Pendiente |  |
+| PM-39 | D-10 |  |  | Pendiente: requiere desplegar la rama en producción |  |
 
 ## 3. Mediciones de rendimiento
 
@@ -131,7 +135,9 @@ Se separa el **valor objetivo** (lo que exige el requerimiento) del **valor medi
 |---|---|---|---|---|
 | RNF-119 (página de búsqueda) | p95 ≤ 2 s en 20 solicitudes | p95 0.86 s (p50 0.67 s, máx. 2.12 s) | curl desde una sola conexión doméstica; servidor activo; HTML completo | 2026-11-25 06:12 UTC |
 | Referencia: consulta GraphQL del catálogo | — | p95 0.20 s (p50 0.18 s, máx. 1.15 s) | `{ productos(busqueda:"sensor") { … } }` con POST /graphql, 20 solicitudes | 2026-11-25 06:06 UTC |
-| RNF-82 (pedido nuevo en el panel) | < 2 s | Sin medir | Requiere una cuenta ADMIN (PM-29) | — |
+| RNF-82 (evento de pedido nuevo) | < 2 s | 9 ms | PA-53 en CI: backend, PostgreSQL y MongoDB en el mismo equipo; no incluye la red ni el navegador | 2026-11-25 06:40 UTC |
+| RNF-82 (evento de cambio de estado) | < 2 s | 5 ms | Igual que la fila anterior | 2026-11-25 06:40 UTC |
+| RNF-82 (fila visible en /admin/pedidos) | < 2 s | Sin medir | Requiere una cuenta ADMIN en producción (PM-29) | — |
 | RNF-83 (stock en el panel) | < 2 s | Sin medir | Requiere una cuenta ADMIN (PM-14) | — |
 
 Por qué el objetivo de RNF-119 es un percentil y no «cada consulta»: en la medición, 1 de 20 cargas tardó 2.12 s. Con la redacción de v1.0 («cada consulta en menos de 2 segundos»), un solo valor atípico de la red habría hecho fallar el requerimiento, aunque el 95 % de las cargas tardó menos de 0.86 s. El percentil 95 sobre 20 muestras tolera un valor atípico y sigue detectando un sistema lento.
@@ -140,10 +146,10 @@ La primera carga después de la suspensión del plan gratuito no cuenta para RNF
 
 ## 4. Pendientes de verificación
 
-- RNF-82: la prueba PA-53 tolera 10 s (subscripciones.test.js:48) y no mide el umbral de 2 s. Opciones: ejecutar PM-29, o agregar a PA-53 una aserción sobre el tiempo transcurrido (es un cambio de código y necesita aprobación).
+- RNF-82: verificado en CI por PA-53 (9 ms y 5 ms). Falta PM-29 para medirlo en producción con la red y el navegador.
 - RNF-77 y RF-43: PA-55 se omite en CI. Opciones: configurar los secretos MCP_EMAIL y MCP_PASSWORD en GitHub Actions (lo hace el dueño del repositorio) o ejecutar PM-36.
-- RNF-92: en la subida desde el panel, el límite de 5 MB solo se aplica en el navegador (frontend/src/lib/imagen.js:16). Es una implementación parcial; la corrección técnica está pendiente de aprobación.
+- D-10: el aviso queda publicado en /privacidad cuando se despliegue la rama (PM-39). Faltan los datos del responsable.
 - RNF-111: la tolerancia a fallos se prueba por servicio (MongoDB, Resend, Google, HERE), pero no hay una prueba de punta a punta que compre con un servicio caído.
 - RNF-119: falta la medición en el navegador (PM-30).
 - RNF-120 y RNF-123: demostraciones PM-31 y PM-32 sin ejecutar.
-- PM-01 a PM-29, PM-31, PM-32 y PM-36 a PM-38: sin ejecutar.
+- PM-01 a PM-29, PM-31, PM-32 y PM-36 a PM-39: sin ejecutar.
