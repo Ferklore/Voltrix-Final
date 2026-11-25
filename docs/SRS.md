@@ -1,18 +1,28 @@
 # Especificación de Requerimientos de Software (SRS) — Voltrix
 
-20 de noviembre de 2026
+25 de noviembre de 2026
 
 | Campo | Valor |
 |---|---|
 | Nombre del proyecto | Voltrix: tienda en línea de componentes electrónicos |
 | Participante(s) | Jesús Emir Ayala Rayo (23100140); Isaac Daniel Guzmán Chávez (23100123); Fernando Rodríguez Sánchez (23100130) |
 | Asesor(es) | Octavio Villavicencio Cruz |
-| Fecha y versión | 20 / 11 / 2026 - v1.0 |
+| Fecha y versión | 25 / 11 / 2026 - v2.0 |
 | Repositorio | Ferklore/Voltrix-Final |
+| Código especificado | Commit 2b8df49 de la rama main (ver docs/EVIDENCIA_COMMIT.md) |
+
+**Historial de versiones**
+
+| Versión | Fecha | Cambios |
+|---|---|---|
+| v1.0 | 20/11/2026 | Versión evaluada. |
+| v2.0 | 25/11/2026 | Atomicidad: RNF-06, RNF-11, RNF-12, RNF-58, RNF-80 y RNF-107 se dividen en requerimientos con sufijo (por ejemplo, RNF-80.1 a RNF-80.7), y RNF-103 conserva solo la prohibición, porque las transiciones permitidas ya son RF-49 a RF-52. Ambigüedad: «carguen rápido», «comprobante válido», «plan gratuito suficiente», «bastan para el volumen esperado», «ventas totales» y «ticket promedio» se sustituyen por valores o fórmulas. Diseño: RNF-99 y RNF-118 pasan a las restricciones RD-19 y RD-20; RNF-12, RNF-74 y RNF-93 se redactan sin nombrar la técnica. Verificación: cada RNF tiene criterio de aceptación; las 28 demostraciones y las pruebas tienen identificador (PM, PA) y resultado esperado en el Apéndice F. Trazabilidad: la sección 3.3 traza los RNF-111 a RNF-123. Consistencia: se corrigen verificaciones que citaban pruebas que no comprueban la condición (RNF-54, RNF-75, RNF-76, RNF-82, RNF-92) y se documentan comportamientos implementados que faltaban (límite de 8 palabras en la búsqueda, eventos RESENA y RESPALDO_FALLIDO de la bitácora). |
+
+Los identificadores de v1.0 se conservan. Un requerimiento dividido deja su número como prefijo de los nuevos (RNF-06 → RNF-06.1 a RNF-06.5) y uno retirado conserva su fila con el motivo, para que ningún número se reutilice con otro significado.
 
 ## 1. Introducción
 
-La presente Especificación de Requerimientos de Software (SRS) proporciona una visión integral y estructurada de la información necesaria para comprender, desarrollar y verificar Voltrix. Incluye la terminología y las referencias utilizadas; una descripción global con la perspectiva, las funciones, las interfaces, los usuarios y las restricciones; los requisitos específicos con su matriz de trazabilidad; las interfaces externas, y los requisitos de diseño del sistema con sus restricciones de diseño. Los apéndices complementan la información sin formar parte directa de la especificación: modelo de datos, formatos de entrada y salida, análisis de mercado, análisis FODA y brief de diseño.
+La presente Especificación de Requerimientos de Software (SRS) proporciona una visión integral y estructurada de la información necesaria para comprender, desarrollar y verificar Voltrix. Incluye la terminología y las referencias utilizadas; una descripción global con la perspectiva, las funciones, las interfaces, los usuarios y las restricciones; los requisitos específicos con su matriz de trazabilidad; las interfaces externas, y los requisitos de diseño del sistema con sus restricciones de diseño. Los apéndices complementan la información sin formar parte directa de la especificación: modelo de datos, formatos de entrada y salida, análisis de mercado, análisis FODA, brief de diseño y catálogo de verificaciones.
 
 ### 1.1 Descripción breve del producto
 
@@ -151,14 +161,16 @@ Para leer o guardar datos, las tres interfaces cliente hablan solo con el backen
 
 Los requerimientos se redactan conforme a ISO/IEC/IEEE 29148 e IEEE 830: cada uno inicia con «El sistema debe», usa un verbo en infinitivo, expresa una sola función o una sola condición y tiene un método de verificación. Los requerimientos funcionales (RF) describen lo que puede hacer cada tipo de usuario; la columna de la derecha lista los requerimientos no funcionales (RNF) que lo condicionan, cuyo texto completo, característica de calidad y método de verificación están en la sección 3.1. Las decisiones de tecnología no se escriben como requerimientos: se listan como restricciones de diseño en la sección 5.2. La sección 3.2 traza cada RF hasta el componente que lo implementa y la prueba que lo verifica.
 
+Criterio de atomicidad: un requerimiento se divide cuando contiene dos condiciones que una prueba podría encontrar cumplida una y no la otra (por ejemplo, la vigencia del token de acceso y la del token de renovación). No se divide cuando varias palabras describen una sola condición que se comprueba de una vez, como una regla con alternativas («nombre, especificaciones o categoría») o un formato (RFC del SAT).
+
 **Visitante**
 
 | Requerimiento funcional (RF) | RNF asociados |
 |---|---|
-| RF-01. El sistema debe permitir al visitante registrar una cuenta de cliente con nombre, correo electrónico, contraseña y dirección de envío. | RNF-01, RNF-02, RNF-03, RNF-04, RNF-05, RNF-06 |
-| RF-02. El sistema debe permitir al visitante iniciar sesión con su correo electrónico y su contraseña. | RNF-07, RNF-08, RNF-09, RNF-10, RNF-11 |
-| RF-03. El sistema debe permitir al visitante iniciar sesión con su cuenta de Google. | RNF-12, RNF-13, RNF-14 |
-| RF-04. El sistema debe permitir al visitante solicitar por correo electrónico un enlace para restablecer su contraseña. | RNF-11, RNF-17, RNF-18 |
+| RF-01. El sistema debe permitir al visitante registrar una cuenta de cliente con nombre, correo electrónico, contraseña y dirección de envío. | RNF-01, RNF-02, RNF-03, RNF-04, RNF-05, RNF-06.1, RNF-06.2, RNF-06.3, RNF-06.4, RNF-06.5 |
+| RF-02. El sistema debe permitir al visitante iniciar sesión con su correo electrónico y su contraseña. | RNF-07, RNF-08, RNF-09, RNF-10, RNF-11.1 |
+| RF-03. El sistema debe permitir al visitante iniciar sesión con su cuenta de Google. | RNF-12.1, RNF-12.2, RNF-12.3, RNF-12.4, RNF-13, RNF-14 |
+| RF-04. El sistema debe permitir al visitante solicitar por correo electrónico un enlace para restablecer su contraseña. | RNF-11.2, RNF-17, RNF-18 |
 | RF-05. El sistema debe permitir al visitante establecer una contraseña nueva mediante el enlace de restablecimiento. | RNF-04, RNF-15, RNF-16, RNF-19, RNF-20 |
 | RF-06. El sistema debe permitir al visitante consultar los productos de una categoría. | RNF-119 |
 | RF-07. El sistema debe permitir al visitante buscar productos por palabras clave. | RNF-22, RNF-119 |
@@ -179,7 +191,7 @@ Los requerimientos se redactan conforme a ISO/IEC/IEEE 29148 e IEEE 830: cada un
 
 | Requerimiento funcional (RF) | RNF asociados |
 |---|---|
-| RF-20. El sistema debe permitir al cliente actualizar su dirección de envío. | RNF-06, RNF-35, RNF-36 |
+| RF-20. El sistema debe permitir al cliente actualizar su dirección de envío. | RNF-06.1, RNF-06.2, RNF-06.3, RNF-06.4, RNF-06.5, RNF-35, RNF-36 |
 | RF-21. El sistema debe permitir al cliente ajustar en un mapa la ubicación de su dirección de envío. | RNF-35, RNF-37 |
 | RF-22. El sistema debe permitir al cliente registrar sus datos fiscales: RFC, razón social, código postal fiscal, régimen fiscal y uso del CFDI. | RNF-38, RNF-39, RNF-40, RNF-41, RNF-42, RNF-43 |
 | RF-23. El sistema debe permitir al cliente eliminar sus datos fiscales. | — |
@@ -188,8 +200,8 @@ Los requerimientos se redactan conforme a ISO/IEC/IEEE 29148 e IEEE 830: cada un
 | RF-26. El sistema debe permitir al cliente consultar su lista de deseos. | RNF-45, RNF-46, RNF-47 |
 | RF-27. El sistema debe permitir al cliente generar un pedido con los productos de su carrito. | RNF-32, RNF-48, RNF-49, RNF-50, RNF-51, RNF-52 |
 | RF-28. El sistema debe permitir al cliente indicar al generar un pedido si requiere factura a su nombre. | RNF-53 |
-| RF-29. El sistema debe permitir al cliente pagar un pedido pendiente con PayPal. | RNF-54, RNF-55, RNF-57 |
-| RF-30. El sistema debe permitir al cliente pagar un pedido pendiente con tarjeta mediante Mercado Pago. | RNF-54, RNF-55, RNF-56, RNF-57, RNF-58 |
+| RF-29. El sistema debe permitir al cliente pagar un pedido pendiente con PayPal. | RNF-54, RNF-55, RNF-57, RNF-58.2 |
+| RF-30. El sistema debe permitir al cliente pagar un pedido pendiente con tarjeta mediante Mercado Pago. | RNF-54, RNF-55, RNF-56, RNF-57, RNF-58.1 |
 | RF-31. El sistema debe permitir al cliente consultar el estado de sus pedidos. | RNF-60 |
 | RF-32. El sistema debe permitir al cliente verificar el resultado de un pago que el proveedor dejó en revisión. | RNF-54 |
 | RF-33. El sistema debe permitir al cliente cancelar un pedido pendiente de pago. | RNF-61, RNF-62 |
@@ -208,7 +220,7 @@ Los requerimientos se redactan conforme a ISO/IEC/IEEE 29148 e IEEE 830: cada un
 
 | Requerimiento funcional (RF) | RNF asociados |
 |---|---|
-| RF-44. El sistema debe permitir al administrador consultar el tablero de indicadores de ventas. | RNF-79, RNF-80, RNF-81 |
+| RF-44. El sistema debe permitir al administrador consultar el tablero de indicadores de ventas. | RNF-79, RNF-80.1, RNF-80.2, RNF-80.3, RNF-80.4, RNF-80.5, RNF-80.6, RNF-80.7 |
 | RF-45. El sistema debe permitir al administrador ver actualizada en el panel, sin recargar la página, la lista de pedidos. | RNF-82, RNF-84 |
 | RF-46. El sistema debe permitir al administrador ver actualizadas en el panel, sin recargar la página, las existencias de los productos. | RNF-83, RNF-84 |
 | RF-47. El sistema debe permitir al administrador consultar los pedidos filtrados por estado. | RNF-79 |
@@ -227,11 +239,11 @@ Los requerimientos se redactan conforme a ISO/IEC/IEEE 29148 e IEEE 830: cada un
 | RF-60. El sistema debe permitir al administrador eliminar un producto. | RNF-46, RNF-79, RNF-94, RNF-95 |
 | RF-61. El sistema debe permitir al administrador subir la imagen de un producto. | RNF-79, RNF-92, RNF-93 |
 | RF-62. El sistema debe permitir al administrador registrar la ficha técnica de un producto. | RNF-25, RNF-79, RNF-96, RNF-97, RNF-98 |
-| RF-63. El sistema debe permitir al administrador buscar componentes en el catálogo de Mouser. | RNF-79, RNF-99, RNF-100 |
+| RF-63. El sistema debe permitir al administrador buscar componentes en el catálogo de Mouser. | RNF-79, RNF-100 |
 | RF-64. El sistema debe permitir al administrador importar un componente de Mouser como producto de la tienda. | RNF-79, RNF-101, RNF-102 |
 | RF-65. El sistema debe permitir al administrador consultar los usuarios con sus compras. | RNF-79 |
 | RF-66. El sistema debe permitir al administrador cambiar el rol de un usuario entre cliente y administrador. | RNF-79, RNF-106 |
-| RF-67. El sistema debe permitir al administrador consultar la bitácora de eventos filtrada por tipo. | RNF-79, RNF-107, RNF-108 |
+| RF-67. El sistema debe permitir al administrador consultar la bitácora de eventos filtrada por tipo. | RNF-79, RNF-107.1, RNF-107.2, RNF-107.3, RNF-107.4, RNF-107.5, RNF-107.6, RNF-107.7, RNF-107.8, RNF-107.9, RNF-107.10, RNF-107.11, RNF-107.12, RNF-107.13, RNF-107.14, RNF-107.15, RNF-108 |
 | RF-68. El sistema debe permitir al administrador recibir un aviso por correo electrónico cuando un producto alcance el stock mínimo. | RNF-75, RNF-109, RNF-110 |
 | RF-69. El sistema debe permitir al administrador eliminar cualquier reseña para moderar su contenido. | RNF-67, RNF-79 |
 | RF-70. El sistema debe permitir al administrador consultar los productos con inventario bajo desde un asistente de inteligencia artificial compatible con MCP. | RNF-77, RNF-110 |
@@ -508,7 +520,7 @@ Las secciones Categorías, Usuarios y Bitácora del panel siguen el mismo patró
 - El cliente es un estudiante o aficionado que conoce la pieza que busca o solo el proyecto que quiere hacer. Por eso hay dos caminos: el buscador y Arma tu kit.
 - Los precios se muestran en pesos con IVA incluido, y la oferta se marca con el precio anterior tachado, para que el total no sorprenda en el pago.
 - El pago ocurre dentro de la tienda: el cliente no sale a otra página ni pierde su carrito.
-- Las páginas del catálogo se generan en el servidor para que carguen rápido y se indexen en buscadores; solo los controles interactivos usan React.
+- Las páginas del catálogo se generan en el servidor para cumplir el tiempo de respuesta de RNF-119 y para que se indexen en buscadores; solo los controles interactivos usan React.
 - El panel admin prioriza tablas filtrables y avisos en vivo, porque el administrador atiende pedidos mientras llegan.
 - Los mensajes de error se redactan en español y dicen qué corregir (por ejemplo, la dirección que falta para comprar).
 
@@ -604,7 +616,7 @@ c) Mapa de experiencia del cliente. Para cada etapa del proceso indica qué busc
 | Evaluar | Confirmar que la pieza sirve y que hay existencias. | Página del producto | Fichas incompletas o en otro idioma. | Ficha técnica en español, datasheet, reseñas con compra verificada y stock visible. |
 | Decidir | Saber cuánto pagará en total. | Carrito | Sorpresas de precio en el pago. | Precios con IVA incluido y oferta con precio anterior tachado. |
 | Pagar | Pagar sin salir de la tienda. | Checkout | Abandonar la compra en otra página. | PayPal y tarjeta dentro de la tienda; dirección confirmada en el mapa. |
-| Comprobar | Tener un comprobante válido. | Correo, Mi cuenta | No recibir factura. | Prefactura CFDI 4.0 en XML y PDF, adjunta al correo y descargable. |
+| Comprobar | Tener un comprobante de su compra con la estructura fiscal mexicana. | Correo, Mi cuenta | No recibir factura. | Prefactura en XML y PDF que pasa la validación contra el XSD del CFDI 4.0 y los catálogos del SAT (RNF-70, RNF-71), adjunta al correo y descargable. No tiene validez fiscal porque no se timbra (sección 2.6). |
 | Recibir | Saber dónde va su pedido. | Mi cuenta | Incertidumbre después de pagar. | Estados Pagado, Enviado y Entregado con su historial. |
 | Opinar | Ayudar a otros compradores. | Página del producto | Reseñas falsas. | Una reseña por cliente, marcada como compra verificada cuando aplica. |
 
@@ -633,7 +645,7 @@ De forma secundaria, un asistente de IA conectado por MCP puede consultar el cat
 - **Conectividad:** se asume que los usuarios cuentan con conexión a internet y un navegador actual con JavaScript activado.
 - **Proveedores de pago:** el cobro depende de la disponibilidad de PayPal y Mercado Pago. Si uno no responde, el pedido queda Pendiente y el cliente puede pagarlo más tarde o con el otro proveedor.
 - **Infraestructura:** el backend usa el plan gratuito de Render, que suspende el servicio tras unos 15 minutos sin tráfico; la primera petición después de la suspensión puede tardar cerca de un minuto. La meta de RNF-119 se mide con el servicio activo. Con una sola instancia y el PubSub en memoria no se garantiza el escalamiento horizontal ni una disponibilidad de 99 %; para lograrlos se requeriría un plan de pago y un PubSub compartido (por ejemplo, Redis).
-- **Bases de datos:** Neon y MongoDB Atlas se usan en sus planes gratuitos, cuyos límites de almacenamiento y cómputo bastan para el volumen esperado del proyecto.
+- **Bases de datos:** Neon y MongoDB Atlas se usan en sus planes gratuitos. Se asume que el almacenamiento usado se mantiene por debajo del límite de cada plan; el supuesto se comprueba en el panel de cada proveedor antes de cada entrega (demostración PM-38) y su resultado se registra en docs/VERIFICACION.md.
 - **Catálogos del SAT:** los catálogos de régimen fiscal y uso del CFDI incluidos son los vigentes durante el desarrollo; si el SAT los modifica, deben actualizarse en el backend.
 - **Servicios externos:** cada integración (Google, HERE, Resend, Cloudinary, Mouser) depende de que su proveedor mantenga la API y el plan gratuito actuales. El tipo de cambio para el precio sugerido de Mouser se configura manualmente; no se consulta en línea.
 
@@ -661,7 +673,7 @@ La tabla registra cada punto en que Voltrix se aparta del Documento de Especific
 | D-07 | RNF5.1 | Escalar horizontalmente. | Una sola instancia del backend. | El PubSub en memoria (RD-11) y el plan gratuito lo impiden; con un plan de pago y un PubSub compartido (por ejemplo, Redis) se podría escalar sin cambiar los requerimientos. |
 | D-08 | RNF6.1 | Disponibilidad de 99 %. | No se garantiza. | Render suspende el servicio gratuito tras unos 15 minutos sin tráfico (sección 2.5). |
 | D-09 | RNF2.1 | Cifrar los datos de los usuarios. | Cifrado en tránsito (RNF-114); en reposo lo aplican Neon y MongoDB Atlas; contraseñas y tokens solo como hash. | No se cifra campo por campo en la aplicación; los proveedores de bases de datos cifran el almacenamiento. |
-| D-10 | §2.4 | Seguir las regulaciones locales de privacidad. | Se recaban solo los datos necesarios para vender y facturar; no se publica aviso de privacidad. | La tienda opera en modo de prueba, sin clientes reales; antes de operar comercialmente debe publicarse el aviso de privacidad que exige la LFPDPPP. |
+| D-10 | §2.4 | Seguir las regulaciones locales de privacidad. | Se recaban solo los datos necesarios para vender y facturar. El aviso de privacidad está redactado en docs/AVISO_PRIVACIDAD.md; falta publicarlo en la tienda, con una página /privacidad y un enlace en el registro (hoy /privacidad responde 404). | La tienda opera en modo de prueba, sin clientes reales; antes de operar comercialmente el aviso debe estar publicado y completo, con los datos del responsable, como exige la LFPDPPP. |
 | D-11 | RF6.1 | Actualizar el inventario al confirmar el pedido. | Las piezas se apartan al crear el pedido (Pendiente) y regresan si se cancela. | Evita vender la misma pieza a dos clientes mientras uno de ellos paga. |
 
 ## 3. Los requisitos específicos
@@ -694,210 +706,262 @@ Esta sección se dirige a los desarrolladores. Define las tecnologías y los mé
 
 ### 3.1 Requerimientos no funcionales
 
-El catálogo reúne los 123 requerimientos no funcionales, clasificados según el modelo de calidad de ISO/IEC 25010:2023 con los nombres de esa versión (por ejemplo, Capacidad de interacción en lugar de Usabilidad y Flexibilidad en lugar de Portabilidad). Cada uno fija un valor o una condición comprobable y su método de verificación: prueba automatizada (archivo de prueba del repositorio), inspección (archivo donde se revisa la regla) o demostración (pasos en la aplicación). RNF-01 a RNF-110 condicionan los requerimientos funcionales de la sección 2.2; RNF-111 a RNF-123 aplican a todo el sistema.
+El catálogo reúne 152 identificadores: 149 requerimientos no funcionales vigentes y 3 retirados (RNF-81, RNF-99 y RNF-118). Están clasificados según el modelo de calidad de ISO/IEC 25010:2023 con los nombres de esa versión (por ejemplo, Capacidad de interacción en lugar de Usabilidad y Flexibilidad en lugar de Portabilidad). Cada uno fija un valor o una condición comprobable, su método de verificación y su criterio de aceptación, es decir, el resultado que debe observarse para darlo por cumplido. La verificación es una prueba automatizada (PA), una demostración (PM), ambas definidas en el Apéndice F, o una inspección de la línea de código indicada. RNF-01 a RNF-110 condicionan los requerimientos funcionales de la sección 2.2; RNF-111 a RNF-123 aplican a todo el sistema y se trazan en la sección 3.3.
 
-| ID | Requerimiento no funcional | Característica (ISO/IEC 25010:2023) | Verificación |
-|---|---|---|---|
-| RNF-01 | El sistema debe aceptar como correo electrónico solo textos de hasta 150 caracteres con la forma usuario@dominio.ext: sin espacios, con una sola @ y con al menos un punto después de ella. | Adecuación funcional (corrección) | Inspección: backend/src/rutas/registro.js |
-| RNF-02 | El sistema debe rechazar el registro de un correo electrónico que ya pertenezca a otra cuenta, sin distinguir mayúsculas de minúsculas. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/api.test.js |
-| RNF-03 | El sistema debe exigir un nombre de 1 a 150 caracteres al registrar una cuenta. | Adecuación funcional (corrección) | Inspección: backend/src/rutas/registro.js |
-| RNF-04 | El sistema debe exigir contraseñas de 8 a 128 caracteres. | Seguridad (autenticidad) | Inspección: backend/src/auth.js |
-| RNF-05 | El sistema debe almacenar cada contraseña solo como un hash irreversible calculado con una sal aleatoria propia de esa cuenta. | Seguridad (confidencialidad) | Inspección: backend/src/auth.js |
-| RNF-06 | El sistema debe exigir en la dirección de envío calle y número, colonia, ciudad, uno de los 32 estados de la República Mexicana y un código postal de 5 dígitos. | Adecuación funcional (corrección) | Inspección: backend/src/direccion.js |
-| RNF-07 | El sistema debe rechazar durante 15 minutos el inicio de sesión de una cuenta después de 5 intentos fallidos consecutivos. | Seguridad (resistencia) | Inspección: backend/src/auth.js |
-| RNF-08 | El sistema debe invalidar cada token de acceso 1 hora después de emitirlo. | Seguridad (autenticidad) | Inspección: backend/src/auth.js |
-| RNF-09 | El sistema debe invalidar cada token de renovación 30 días después de emitirlo. | Seguridad (autenticidad) | Inspección: backend/src/auth.js |
-| RNF-10 | El sistema debe invalidar un token de renovación después de su primer uso. | Seguridad (autenticidad) | Prueba automatizada: backend/test/api.test.js |
-| RNF-11 | El sistema debe almacenar de cada token de sesión y de cada enlace de restablecimiento solo un resumen criptográfico irreversible. | Seguridad (confidencialidad) | Inspección: backend/db.sql |
-| RNF-12 | El sistema debe aceptar un token de identidad de Google solo si su firma corresponde a las llaves públicas de Google, su audiencia es el identificador de cliente de Voltrix, su emisor es accounts.google.com y no ha vencido. | Seguridad (autenticidad) | Prueba automatizada: backend/test/google.test.js |
-| RNF-13 | El sistema debe rechazar un token de identidad de Google cuyo correo no esté verificado. | Seguridad (autenticidad) | Prueba automatizada: backend/test/google.test.js |
-| RNF-14 | El sistema debe asociar el inicio de sesión con Google a la cuenta existente que tenga el mismo correo electrónico. | Adecuación funcional (corrección) | Inspección: backend/src/google.js |
-| RNF-15 | El sistema debe invalidar cada enlace de restablecimiento 30 minutos después de emitirlo. | Seguridad (autenticidad) | Inspección: backend/src/rutas/recuperar.js |
-| RNF-16 | El sistema debe invalidar cada enlace de restablecimiento después de su primer uso. | Seguridad (autenticidad) | Inspección: backend/src/rutas/recuperar.js |
-| RNF-17 | El sistema debe responder con el mismo mensaje a una solicitud de restablecimiento, exista o no una cuenta con ese correo. | Seguridad (confidencialidad) | Inspección: backend/src/rutas/recuperar.js |
-| RNF-18 | El sistema debe enviar como máximo un correo de restablecimiento por minuto a una misma cuenta. | Seguridad (resistencia) | Inspección: backend/src/rutas/recuperar.js |
-| RNF-19 | El sistema debe revocar todas las sesiones activas de una cuenta al restablecer su contraseña. | Seguridad (integridad) | Inspección: backend/src/rutas/recuperar.js |
-| RNF-20 | El sistema debe retirar el bloqueo por intentos fallidos al restablecer la contraseña. | Adecuación funcional (corrección) | Inspección: backend/src/rutas/recuperar.js |
-| RNF-21 | El sistema debe invalidar el token de acceso y el token de renovación de una sesión al cerrarla. | Seguridad (confidencialidad) | Prueba automatizada: backend/test/api.test.js |
-| RNF-22 | El sistema debe considerar que un producto coincide con una búsqueda solo si cada palabra buscada aparece en su nombre, en sus especificaciones o en el nombre de su categoría, sin distinguir mayúsculas de minúsculas. | Adecuación funcional (corrección) | Inspección: backend/src/catalogo.js |
-| RNF-23 | El sistema debe considerar en oferta solo los productos cuyo precio anterior sea mayor que su precio actual. | Adecuación funcional (corrección) | Inspección: backend/src/catalogo.js |
-| RNF-24 | El sistema debe medir la popularidad de un producto como la suma de sus piezas vendidas en pedidos con estado Pagado, Enviado o Entregado. | Adecuación funcional (corrección) | Inspección: backend/src/catalogo.js |
-| RNF-25 | El sistema debe aceptar como enlace al datasheet solo direcciones que empiecen con http:// o https://. | Seguridad (integridad) | Prueba automatizada: backend/test/mongo.test.js |
-| RNF-26 | El sistema debe publicar como autor de cada reseña solo la primera palabra del nombre del cliente y la inicial de la segunda. | Seguridad (confidencialidad) | Prueba automatizada: backend/test/mongo.test.js |
-| RNF-27 | El sistema debe rechazar descripciones de proyecto de más de 500 caracteres. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-28 | El sistema debe rechazar presupuestos menores o iguales a cero. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-29 | El sistema debe recomendar para cada pieza solo productos cuyas existencias sean mayores o iguales a la cantidad que requiere el kit. | Adecuación funcional (pertinencia) | Prueba automatizada: backend/test/kits.test.js |
-| RNF-30 | El sistema debe retirar primero las piezas opcionales, de la más cara a la más barata, cuando el kit exceda el presupuesto. | Adecuación funcional (pertinencia) | Prueba automatizada: backend/test/kits.test.js |
-| RNF-31 | El sistema debe sustituir piezas por alternativas de menor precio cuando el kit siga excediendo el presupuesto sin piezas opcionales. | Adecuación funcional (pertinencia) | Prueba automatizada: backend/test/kits.test.js |
-| RNF-32 | El sistema debe aceptar como cantidad de un producto solo números enteros mayores que cero. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-33 | El sistema debe limitar la cantidad de cada producto del carrito a sus existencias disponibles. | Adecuación funcional (corrección) | Prueba automatizada: frontend/test/carrito.test.js |
-| RNF-34 | El sistema debe conservar el carrito en el navegador del visitante al recargar o cerrar la página. | Capacidad de interacción (operabilidad) | Inspección: frontend/src/lib/carrito.js |
-| RNF-35 | El sistema debe aceptar solo coordenadas de envío ubicadas dentro de México: latitud de 14.3 a 32.8 y longitud de −118.5 a −86.6. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/mapas.test.js |
-| RNF-36 | El sistema debe guardar la dirección sin coordenadas cuando el servicio de geocodificación no responda. | Fiabilidad (tolerancia a fallos) | Prueba automatizada: backend/test/mapas.test.js |
-| RNF-37 | El sistema debe dar prioridad a la ubicación que el cliente marque en el mapa sobre la calculada por geocodificación. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/mapas.test.js |
-| RNF-38 | El sistema debe aceptar solo RFC con el formato del SAT: 3 letras (persona moral, 12 caracteres) o 4 letras (persona física, 13 caracteres), seguidas de una fecha AAMMDD y una homoclave de 3 caracteres. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/cfdi.test.js |
-| RNF-39 | El sistema debe rechazar como RFC del cliente los RFC genéricos XAXX010101000 y XEXX010101000. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/cfdi.test.js |
-| RNF-40 | El sistema debe aceptar solo un régimen fiscal del catálogo c_RegimenFiscal del SAT que aplique al tipo de persona del RFC. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/cfdi.test.js |
-| RNF-41 | El sistema debe aceptar solo un uso del CFDI del catálogo c_UsoCFDI del SAT permitido para el régimen fiscal elegido. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/cfdi.test.js |
-| RNF-42 | El sistema debe exigir un código postal fiscal de 5 dígitos. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/cfdi.test.js |
-| RNF-43 | El sistema debe exigir una razón social de 1 a 254 caracteres que no contenga el carácter «\|». | Adecuación funcional (corrección) | Prueba automatizada: backend/test/cfdi.test.js |
-| RNF-44 | El sistema debe impedir que un producto aparezca dos veces en la lista de deseos de un mismo cliente. | Seguridad (integridad) | Prueba automatizada: backend/test/deseos.test.js |
-| RNF-45 | El sistema debe mostrar cada lista de deseos solo a su propietario, incluidos los casos en que quien consulta es administrador. | Seguridad (confidencialidad) | Prueba automatizada: backend/test/deseos.test.js |
-| RNF-46 | El sistema debe retirar un producto de todas las listas de deseos al eliminar ese producto. | Seguridad (integridad) | Inspección: backend/db.sql |
-| RNF-47 | El sistema debe mostrar en la lista de deseos el precio y las existencias vigentes de cada producto. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-48 | El sistema debe rechazar un pedido sin productos. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-49 | El sistema debe rechazar un pedido que incluya un producto que no exista en el catálogo. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-50 | El sistema debe rechazar un pedido si el cliente no tiene una dirección de envío registrada. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-51 | El sistema debe registrar el pedido y descontar sus existencias en una sola transacción, que se revierte completa si las existencias de algún producto son menores que la cantidad pedida. | Seguridad (integridad) | Prueba automatizada: backend/test/api.test.js |
-| RNF-52 | El sistema debe calcular el total del pedido con los precios almacenados en la base de datos, sin aceptar importes enviados por el cliente. | Seguridad (integridad) | Prueba automatizada: backend/test/api.test.js |
-| RNF-53 | El sistema debe exigir que el cliente tenga registrados RFC, razón social, código postal fiscal, régimen fiscal y uso del CFDI antes de emitir una prefactura a su nombre. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/facturacion.test.js |
-| RNF-54 | El sistema debe cambiar un pedido a Pagado solo después de confirmar con el proveedor de pagos que el monto y la moneda cobrados coinciden con los del pedido. | Seguridad (integridad) | Prueba automatizada: backend/test/modo-prueba.test.js |
-| RNF-55 | El sistema debe cobrar cada pedido como máximo una vez, aunque la solicitud de pago se repita. | Seguridad (integridad) | Inspección: backend/src/pagos/index.js |
-| RNF-56 | El sistema debe procesar pagos con tarjeta sin recibir ni almacenar el número de la tarjeta. | Seguridad (confidencialidad) | Inspección: backend/src/graphql/schema.js (TarjetaInput) |
-| RNF-57 | El sistema debe operar en modo de prueba mientras su configuración no indique de forma explícita el modo de producción. | Seguridad (integridad) | Inspección: backend/src/pagos/modo.js |
-| RNF-58 | El sistema debe rechazar y reembolsar, en modo de prueba, cualquier cobro hecho con una cuenta o una tarjeta reales. | Seguridad (integridad) | Prueba automatizada: backend/test/modo-prueba.test.js |
-| RNF-59 | El sistema debe permitir que el administrador marque como Pagado un pedido Pendiente solo en modo de prueba. | Seguridad (integridad) | Prueba automatizada: backend/test/estados-pedido.test.js |
-| RNF-60 | El sistema debe mostrar cada pedido y su prefactura solo a su propietario y a los administradores. | Seguridad (confidencialidad) | Prueba automatizada: backend/test/api.test.js |
-| RNF-61 | El sistema debe permitir que el cliente cancele solo pedidos en estado Pendiente. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-62 | El sistema debe reintegrar a las existencias las piezas de un pedido al cancelarlo. | Seguridad (integridad) | Inspección: backend/src/pedidos.js |
-| RNF-63 | El sistema debe aceptar solo calificaciones enteras de 1 a 5. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/mongo.test.js |
-| RNF-64 | El sistema debe rechazar comentarios de reseña de más de 1000 caracteres. | Adecuación funcional (corrección) | Inspección: backend/src/mongo/resenas.js |
-| RNF-65 | El sistema debe conservar una sola reseña por cliente y producto; una nueva publicación del mismo cliente reemplaza la anterior. | Seguridad (autenticidad) | Inspección: backend/src/mongo/conexion.js |
-| RNF-66 | El sistema debe marcar una reseña como compra verificada solo si el cliente tiene un pedido Pagado, Enviado o Entregado con ese producto. | Seguridad (autenticidad) | Inspección: backend/src/mongo/resenas.js |
-| RNF-67 | El sistema debe permitir eliminar una reseña solo a su autor o a un administrador. | Seguridad (integridad) | Inspección: backend/src/mongo/resenas.js |
-| RNF-68 | El sistema debe emitir la prefactura a nombre de PUBLICO EN GENERAL (RFC XAXX010101000) cuando el pedido no requiera factura. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/facturacion.test.js |
-| RNF-69 | El sistema debe generar cada prefactura con la estructura del Anexo 20 del CFDI 4.0: nodos Comprobante, Emisor, Receptor, Conceptos e Impuestos, más InformacionGlobal cuando el receptor sea público en general. | Compatibilidad (interoperabilidad) | Prueba automatizada: backend/test/cfdi.test.js |
-| RNF-70 | El sistema debe validar cada prefactura contra el esquema XSD del CFDI 4.0. | Compatibilidad (interoperabilidad) | Prueba automatizada: backend/test/cfdi.test.js |
-| RNF-71 | El sistema debe validar las claves de cada prefactura contra los catálogos del SAT de moneda, impuestos, régimen fiscal y uso del CFDI. | Compatibilidad (interoperabilidad) | Prueba automatizada: backend/test/cfdi.test.js |
-| RNF-72 | El sistema debe almacenar con cada prefactura el resultado de su validación y la lista de errores encontrados. | Seguridad (responsabilidad) | Inspección: backend/db.sql |
-| RNF-73 | El sistema debe calcular los importes de la prefactura con 6 decimales, de modo que su total sea igual al monto cobrado. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/cfdi.test.js |
-| RNF-74 | El sistema debe conservar una copia privada del XML y del PDF de cada prefactura fuera de la base de datos principal. | Fiabilidad (recuperabilidad) | Inspección: backend/src/cfdi/index.js |
-| RNF-75 | El sistema debe enviar los correos después de confirmar la transacción correspondiente, de modo que una falla en el envío no la revierta. | Fiabilidad (tolerancia a fallos) | Prueba automatizada: backend/test/correo.test.js |
-| RNF-76 | El sistema debe adjuntar la prefactura en XML y en PDF al correo de confirmación de pago. | Adecuación funcional (completitud) | Prueba automatizada: backend/test/correo.test.js |
-| RNF-77 | El sistema debe aplicar a cada asistente MCP los mismos permisos que al token del usuario que lo conecta. | Seguridad (confidencialidad) | Prueba automatizada: backend/test/mcp.test.js |
-| RNF-78 | El sistema debe permitir sin token solo las consultas públicas del catálogo y de los kits por MCP. | Seguridad (confidencialidad) | Prueba automatizada: backend/test/mcp.test.js |
-| RNF-79 | El sistema debe verificar en el servidor el rol de administrador en cada operación administrativa. | Seguridad (confidencialidad) | Prueba automatizada: backend/test/api.test.js |
-| RNF-80 | El sistema debe mostrar en el tablero de ventas: ventas totales, ticket promedio, pedidos por estado, ventas por día, cobros por proveedor, productos más vendidos y productos con stock bajo. | Adecuación funcional (completitud) | Demostración: abrir /admin con una cuenta ADMIN |
-| RNF-81 | El sistema debe calcular los indicadores de ventas solo con pedidos en estado Pagado, Enviado o Entregado. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-82 | El sistema debe mostrar a los administradores conectados cada pedido nuevo o cambio de estado en menos de 2 segundos después de confirmarse. | Eficiencia de desempeño (comportamiento temporal) | Prueba automatizada: backend/test/subscripciones.test.js |
-| RNF-83 | El sistema debe mostrar a los administradores conectados cada cambio de existencias en menos de 2 segundos después de confirmarse. | Eficiencia de desempeño (comportamiento temporal) | Demostración: comprar en una ventana y ver /admin/productos en otra |
-| RNF-84 | El sistema debe aceptar suscripciones en tiempo real solo de cuentas con rol de administrador. | Seguridad (confidencialidad) | Prueba automatizada: backend/test/subscripciones.test.js |
-| RNF-85 | El sistema debe exigir un nombre de categoría de 1 a 100 caracteres. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-86 | El sistema debe rechazar descripciones de categoría de más de 255 caracteres. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-87 | El sistema debe impedir la eliminación de una categoría que tenga productos. | Seguridad (integridad) | Inspección: backend/db.sql |
-| RNF-88 | El sistema debe rechazar precios negativos. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-89 | El sistema debe rechazar existencias negativas. | Adecuación funcional (corrección) | Inspección: backend/db.sql |
-| RNF-90 | El sistema debe aceptar un precio anterior solo si es mayor que el precio actual del producto. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-91 | El sistema debe aceptar como clave de producto o servicio del SAT solo claves de 8 dígitos. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-92 | El sistema debe rechazar imágenes de producto de más de 5 MB. | Seguridad (resistencia) | Prueba automatizada: backend/test/cloudinary.test.js |
-| RNF-93 | El sistema debe aceptar como imagen de producto solo rutas propias de la tienda (/productos/…) o direcciones https del servicio de archivos configurado. | Seguridad (integridad) | Prueba automatizada: backend/test/cloudinary.test.js |
-| RNF-94 | El sistema debe impedir la eliminación de un producto que aparezca en algún pedido. | Seguridad (integridad) | Inspección: backend/db.sql |
-| RNF-95 | El sistema debe eliminar la ficha técnica y las reseñas de un producto al eliminar ese producto. | Seguridad (integridad) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-96 | El sistema debe limitar la ficha técnica a 40 especificaciones. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/mongo.test.js |
-| RNF-97 | El sistema debe rechazar especificaciones a las que les falte el nombre o el valor. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/mongo.test.js |
-| RNF-98 | El sistema debe rechazar una especificación cuyo nombre ya exista en la misma ficha. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/mongo.test.js |
-| RNF-99 | El sistema debe reutilizar durante 10 minutos el resultado de cada búsqueda en Mouser. | Eficiencia de desempeño (utilización de recursos) | Prueba automatizada: backend/test/mouser.test.js |
-| RNF-100 | El sistema debe limitar las búsquedas en Mouser a 25 por minuto. | Eficiencia de desempeño (capacidad) | Prueba automatizada: backend/test/mouser.test.js |
-| RNF-101 | El sistema debe calcular el precio sugerido como precio unitario × tipo de cambio configurado × margen configurado × 1.16 (IVA), redondeado al peso hacia arriba. | Adecuación funcional (corrección) | Prueba automatizada: backend/test/mouser.test.js |
-| RNF-102 | El sistema debe importar solo imágenes de mouser.com servidas por https. | Seguridad (integridad) | Prueba automatizada: backend/test/mouser.test.js |
-| RNF-103 | El sistema debe rechazar cualquier cambio de estado de un pedido distinto de Pagado → Enviado, Enviado → Entregado, Pendiente → Cancelado y Pagado → Cancelado, salvo el de modo de prueba Pendiente → Pagado. | Seguridad (integridad) | Prueba automatizada: backend/test/estados-pedido.test.js |
-| RNF-104 | El sistema debe impedir que un pedido cancelado cambie de estado. | Seguridad (integridad) | Prueba automatizada: backend/test/estados-pedido.test.js |
-| RNF-105 | El sistema debe registrar la fecha y la hora de cada cambio de estado de un pedido mientras la base de documentos esté disponible. | Seguridad (responsabilidad) | Inspección: backend/src/mongo/pedidos.js |
-| RNF-106 | El sistema debe impedir que un administrador cambie su propio rol. | Seguridad (integridad) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-107 | El sistema debe registrar en la bitácora los pedidos creados, los cambios de estado, los pagos aprobados y rechazados, los cambios al catálogo, los registros, los inicios de sesión fallidos y con Google, los restablecimientos de contraseña y los correos enviados o fallidos. | Seguridad (responsabilidad) | Inspección: backend/src/mongo/bitacora.js |
-| RNF-108 | El sistema debe eliminar de la bitácora los eventos con más de 90 días de antigüedad. | Mantenibilidad (modificabilidad) | Inspección: backend/src/mongo/conexion.js |
-| RNF-109 | El sistema debe enviar el aviso de stock bajo cuando las existencias de un producto queden en el stock mínimo o por debajo de él. | Adecuación funcional (completitud) | Prueba automatizada: backend/test/correo.test.js |
-| RNF-110 | El sistema debe usar un stock mínimo configurable con valor predeterminado de 5 unidades. | Mantenibilidad (modificabilidad) | Inspección: backend/src/correo/avisos.js |
-| RNF-111 | El sistema debe mantener disponibles el catálogo y la compra cuando la base de documentos o un servicio externo no respondan, desactivando solo la función afectada. | Fiabilidad (tolerancia a fallos) | Prueba automatizada: backend/test/mongo.test.js |
-| RNF-112 | El sistema debe ofrecer una ruta pública que indique si el servicio está activo. | Fiabilidad (disponibilidad) | Inspección: backend/src/index.js |
-| RNF-113 | El sistema debe mantener las credenciales de los servicios externos fuera del código fuente y del repositorio. | Seguridad (confidencialidad) | Inspección: .gitignore y backend/.env.example |
-| RNF-114 | El sistema debe cifrar las comunicaciones entre el navegador, el servidor y las bases de datos. | Seguridad (confidencialidad) | Inspección: render.yaml, netlify.toml y cadenas de conexión |
-| RNF-115 | El sistema debe aceptar peticiones del navegador solo desde los orígenes configurados. | Seguridad (resistencia) | Inspección: backend/src/index.js |
-| RNF-116 | El sistema debe aplicar los cambios de esquema de la base de datos sin eliminar los datos existentes. | Mantenibilidad (modificabilidad) | Inspección: backend/migraciones |
-| RNF-117 | El sistema debe permitir aplicar cada cambio de esquema más de una vez sin efecto adicional. | Mantenibilidad (modificabilidad) | Inspección: backend/scripts/validar.mjs |
-| RNF-118 | El sistema debe desplegar solo versiones que superen la validación estática, la auditoría de dependencias del backend sin vulnerabilidades altas y las pruebas automatizadas. | Mantenibilidad (capacidad de prueba) | Inspección: .github/workflows/ci.yml |
-| RNF-119 | El sistema debe responder cada consulta del catálogo en menos de 2 segundos, medidos desde el navegador, con el servidor activo (no suspendido por inactividad). | Eficiencia de desempeño (comportamiento temporal) | Demostración: medir 20 consultas en la pestaña Red del navegador |
-| RNF-120 | El sistema debe mostrar todas sus páginas sin desplazamiento horizontal en pantallas desde 360 píxeles de ancho. | Capacidad de interacción (operabilidad) | Demostración: vista de dispositivo de 360 px en el navegador |
-| RNF-121 | El sistema debe mostrar los mensajes de error en español. | Capacidad de interacción (protección contra errores del usuario) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-122 | El sistema debe indicar en cada mensaje de error de validación el dato que el usuario debe corregir. | Capacidad de interacción (protección contra errores del usuario) | Inspección: backend/src/graphql/resolvers.js |
-| RNF-123 | El sistema debe funcionar en las dos versiones estables más recientes de Chrome, Firefox, Edge y Safari. | Flexibilidad (adaptabilidad) | Demostración: recorrer el proceso de compra en cada navegador |
+RNF-105 y RNF-107.1 a RNF-107.15 dependen de la base de documentos: si no está disponible, el evento no se registra y la operación principal continúa (RNF-111).
+
+| ID | Requerimiento no funcional | Característica (ISO/IEC 25010:2023) | Verificación | Criterio de aceptación |
+|---|---|---|---|---|
+| RNF-01 | El sistema debe aceptar como correo electrónico solo textos de hasta 150 caracteres con la forma usuario@dominio.ext: sin espacios, con una sola @ y con al menos un punto después de ella. | Adecuación funcional (corrección) | Inspección: backend/src/rutas/registro.js:18 | Un correo sin @, con espacios, sin punto tras la @ o de más de 150 caracteres recibe HTTP 400. |
+| RNF-02 | El sistema debe rechazar el registro de un correo electrónico que ya pertenezca a otra cuenta, sin distinguir mayúsculas de minúsculas. | Adecuación funcional (corrección) | PA-52 | registrar el mismo correo en mayúsculas devuelve HTTP 409. |
+| RNF-03 | El sistema debe exigir un nombre de 1 a 150 caracteres al registrar una cuenta. | Adecuación funcional (corrección) | Inspección: backend/src/rutas/registro.js:17 | Un nombre vacío o de más de 150 caracteres recibe HTTP 400 «Escribe tu nombre.». |
+| RNF-04 | El sistema debe exigir contraseñas de 8 a 128 caracteres. | Seguridad (autenticidad) | Inspección: backend/src/auth.js:35-36 | Una contraseña de 7 o de 129 caracteres se rechaza con un mensaje; una de 8 a 128 se acepta. |
+| RNF-05 | El sistema debe almacenar cada contraseña solo como un hash irreversible calculado con una sal aleatoria propia de esa cuenta. | Seguridad (confidencialidad) | Inspección: backend/src/auth.js:15-19 | El valor guardado tiene la forma scrypt$<sal>$<hash>, con una sal de 16 bytes generada en cada llamada (randomBytes). |
+| RNF-06.1 | El sistema debe exigir en la dirección de envío una calle y número de 1 a 150 caracteres. | Adecuación funcional (corrección) | Inspección: backend/src/direccion.js:24 | Calle vacía o de más de 150 caracteres: «Escribe la calle y el número.». |
+| RNF-06.2 | El sistema debe exigir en la dirección de envío una colonia de 1 a 100 caracteres. | Adecuación funcional (corrección) | Inspección: backend/src/direccion.js:25 | Colonia vacía o de más de 100 caracteres: «Escribe la colonia.». |
+| RNF-06.3 | El sistema debe exigir en la dirección de envío una ciudad o municipio de 1 a 100 caracteres. | Adecuación funcional (corrección) | Inspección: backend/src/direccion.js:26 | Ciudad vacía o de más de 100 caracteres: «Escribe la ciudad o municipio.». |
+| RNF-06.4 | El sistema debe exigir en la dirección de envío un estado de la lista de las 32 entidades federativas de México. | Adecuación funcional (corrección) | Inspección: backend/src/direccion.js:5-10, 27 | ESTADOS_MX tiene 32 entradas; un estado fuera de la lista: «Elige un estado de la lista.». |
+| RNF-06.5 | El sistema debe exigir en la dirección de envío un código postal de exactamente 5 dígitos. | Adecuación funcional (corrección) | Inspección: backend/src/direccion.js:28 | Un código postal que no cumpla ^\d{5}$: «El código postal debe tener 5 dígitos.». |
+| RNF-07 | El sistema debe rechazar durante 15 minutos el inicio de sesión de una cuenta después de 5 intentos fallidos consecutivos. | Seguridad (resistencia) | PA-52 | tras 5 intentos fallidos, la contraseña correcta devuelve invalid_grant. |
+| RNF-08 | El sistema debe invalidar cada token de acceso 1 hora después de emitirlo. | Seguridad (autenticidad) | Inspección: backend/src/auth.js:8, 84-87 | ACCESS_TTL = 3600 s se guarda como fecha de expiración del token de acceso. |
+| RNF-09 | El sistema debe invalidar cada token de renovación 30 días después de emitirlo. | Seguridad (autenticidad) | Inspección: backend/src/auth.js:9, 84-87 | REFRESH_TTL = 2 592 000 s (30 días) se guarda como fecha de expiración del token de renovación. |
+| RNF-10 | El sistema debe invalidar un token de renovación después de su primer uso. | Seguridad (autenticidad) | PA-52 | reutilizar un token de renovación ya canjeado devuelve invalid_grant. |
+| RNF-11.1 | El sistema debe almacenar de cada token de sesión (de acceso y de renovación) solo un resumen criptográfico irreversible. | Seguridad (confidencialidad) | Inspección: backend/src/auth.js:77, 87; backend/db.sql (oauth_token.hash) | Solo se inserta sha256(token); el token en claro no se escribe en la base. |
+| RNF-11.2 | El sistema debe almacenar de cada enlace de restablecimiento de contraseña solo un resumen criptográfico irreversible. | Seguridad (confidencialidad) | Inspección: backend/src/rutas/recuperar.js:44-45 | Solo se inserta sha256(token) en password_reset. |
+| RNF-12.1 | El sistema debe aceptar un token de identidad de Google solo si su firma se verifica con las llaves públicas que publica Google. | Seguridad (autenticidad) | PA-26 | un token firmado con una llave ajena se rechaza (ErrorGoogle). |
+| RNF-12.2 | El sistema debe aceptar un token de identidad de Google solo si su audiencia es el identificador de cliente configurado para Voltrix. | Seguridad (autenticidad) | PA-26 | un token con otro client id se rechaza. |
+| RNF-12.3 | El sistema debe aceptar un token de identidad de Google solo si su emisor es el que Google declara para sus tokens de identidad (sección 4.1). | Seguridad (autenticidad) | PA-26 | un token con otro emisor se rechaza. |
+| RNF-12.4 | El sistema debe aceptar un token de identidad de Google solo si no ha vencido. | Seguridad (autenticidad) | PA-26 | un token vencido se rechaza. |
+| RNF-13 | El sistema debe rechazar un token de identidad de Google cuyo correo no esté verificado. | Seguridad (autenticidad) | PA-27 | email_verified=false se rechaza con «no está verificado». |
+| RNF-14 | El sistema debe asociar el inicio de sesión con Google a la cuenta existente que tenga el mismo correo electrónico. | Adecuación funcional (corrección) | Inspección: backend/src/google.js:48-58 | Si no hay cuenta con ese google_sub, se actualiza la que tenga el mismo correo (UPDATE … WHERE email = $2 AND google_sub IS NULL) antes de crear una nueva. |
+| RNF-15 | El sistema debe invalidar cada enlace de restablecimiento 30 minutos después de emitirlo. | Seguridad (autenticidad) | Inspección: backend/src/rutas/recuperar.js:21, 44 | El enlace se guarda con expira = now() + 30 minutos; después de esa hora la consulta de canje no lo encuentra. |
+| RNF-16 | El sistema debe invalidar cada enlace de restablecimiento después de su primer uso. | Seguridad (autenticidad) | Inspección: backend/src/rutas/recuperar.js:68 | El canje hace DELETE … RETURNING: un segundo uso no encuentra el enlace y responde «El enlace ya no es válido o venció.». |
+| RNF-17 | El sistema debe responder con el mismo mensaje a una solicitud de restablecimiento, exista o no una cuenta con ese correo. | Seguridad (confidencialidad) | Inspección: backend/src/rutas/recuperar.js:24, 52 | La respuesta es siempre MENSAJE («Si hay una cuenta con ese correo…»), exista o no la cuenta. |
+| RNF-18 | El sistema debe enviar como máximo un correo de restablecimiento por minuto a una misma cuenta. | Seguridad (resistencia) | Inspección: backend/src/rutas/recuperar.js:23, 36 | Si hay un enlace creado hace menos de 60 s (ESPERA_SEG) para esa cuenta, no se envía otro correo. |
+| RNF-19 | El sistema debe revocar todas las sesiones activas de una cuenta al restablecer su contraseña. | Seguridad (integridad) | Inspección: backend/src/rutas/recuperar.js:80 | Al restablecer se ejecuta DELETE FROM oauth_token WHERE usuario_id = $1. |
+| RNF-20 | El sistema debe retirar el bloqueo por intentos fallidos al restablecer la contraseña. | Adecuación funcional (corrección) | Inspección: backend/src/rutas/recuperar.js:76 | Al restablecer se ponen intentos_fallidos = 0 y bloqueado_hasta = NULL. |
+| RNF-21 | El sistema debe invalidar el token de acceso y el token de renovación de una sesión al cerrarla. | Seguridad (confidencialidad) | PA-52 | después de /oauth/revoke, el token de acceso ya no identifica al usuario. |
+| RNF-22 | El sistema debe considerar que un producto coincide con una búsqueda solo si cada una de las primeras 8 palabras buscadas aparece en su nombre, en sus especificaciones o en el nombre de su categoría, sin distinguir mayúsculas de minúsculas. | Adecuación funcional (corrección) | Inspección: backend/src/catalogo.js:26-30, PA-54 | Se toman como máximo 8 palabras y cada una agrega una condición ILIKE sobre nombre, especificaciones o categoría; mcp.test.js:45 obtiene resultados por la misma función. |
+| RNF-23 | El sistema debe considerar en oferta solo los productos cuyo precio anterior sea mayor que su precio actual. | Adecuación funcional (corrección) | Inspección: backend/src/catalogo.js:36 | El filtro de ofertas es p.precio_anterior > p.precio. |
+| RNF-24 | El sistema debe medir la popularidad de un producto como la suma de sus piezas vendidas en pedidos con estado Pagado, Enviado o Entregado. | Adecuación funcional (corrección) | Inspección: backend/src/catalogo.js:5, 15, 43 | MAS_VENDIDOS ordena por la suma de cantidades de pedidos con status Pagado, Enviado o Entregado. |
+| RNF-25 | El sistema debe aceptar como enlace al datasheet solo direcciones que empiecen con http:// o https://. | Seguridad (integridad) | PA-15 | un datasheet «javascript:…» se rechaza con /http/. |
+| RNF-26 | El sistema debe publicar como autor de cada reseña solo la primera palabra del nombre del cliente y la inicial de la segunda. | Seguridad (confidencialidad) | PA-17 | «Fernando Rodríguez Sánchez» se publica como «Fernando R.». |
+| RNF-27 | El sistema debe rechazar descripciones de proyecto de más de 500 caracteres. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js:100 | Una descripción de 501 caracteres recibe KIT_SIN_DATOS; una de 500 se acepta. |
+| RNF-28 | El sistema debe rechazar presupuestos menores o iguales a cero. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js:101 | Un presupuesto 0 o negativo recibe KIT_SIN_DATOS. |
+| RNF-29 | El sistema debe recomendar para cada pieza solo productos cuyas existencias sean mayores o iguales a la cantidad que requiere el kit. | Adecuación funcional (pertinencia) | PA-24 | una pieza sin existencias suficientes para la cantidad del kit no se recomienda. |
+| RNF-30 | El sistema debe retirar primero las piezas opcionales, de la más cara a la más barata, cuando el kit exceda el presupuesto. | Adecuación funcional (pertinencia) | PA-23 | con 440 > 400 se retira primero la pieza opcional. El orden de más cara a más barata se verifica por inspección (línea 71). |
+| RNF-31 | El sistema debe sustituir piezas por alternativas de menor precio cuando el kit siga excediendo el presupuesto sin piezas opcionales. | Adecuación funcional (pertinencia) | PA-23 | sin opcionales y aún sobre el presupuesto, se cambia la pieza que más ahorra. |
+| RNF-32 | El sistema debe aceptar como cantidad de un producto solo números enteros mayores que cero. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js:379; backend/db.sql:55 | Una cantidad 0, negativa o decimal recibe CANTIDAD_INVALIDA; la base además exige cantidad > 0. |
+| RNF-33 | El sistema debe limitar la cantidad de cada producto del carrito a sus existencias disponibles. | Adecuación funcional (corrección) | PA-60 | la cantidad se limita al stock del producto. |
+| RNF-34 | El sistema debe conservar el carrito en el navegador del visitante al recargar o cerrar la página. | Capacidad de interacción (operabilidad) | Inspección: frontend/src/lib/carrito.js:43, 62 | El carrito se lee y se escribe en localStorage; sobrevive a recargar la página. |
+| RNF-35 | El sistema debe aceptar solo coordenadas de envío ubicadas dentro de México: latitud de 14.3 a 32.8 y longitud de −118.5 a −86.6. | Adecuación funcional (corrección) | PA-41 | Guadalajara, Tijuana y Cancún se aceptan; Nueva York y (0, 0) se rechazan. |
+| RNF-36 | El sistema debe guardar la dirección sin coordenadas cuando el servicio de geocodificación no responda. | Fiabilidad (tolerancia a fallos) | PA-44 | si HERE falla, la ubicación es null y la dirección se guarda. |
+| RNF-37 | El sistema debe dar prioridad a la ubicación que el cliente marque en el mapa sobre la calculada por geocodificación. | Adecuación funcional (corrección) | PA-44 | con pin del cliente se usan sus coordenadas y no se consulta HERE. |
+| RNF-38 | El sistema debe aceptar solo RFC con el formato del SAT: 3 letras (persona moral, 12 caracteres) o 4 letras (persona física, 13 caracteres), seguidas de una fecha AAMMDD y una homoclave de 3 caracteres. | Adecuación funcional (corrección) | PA-06 | el RFC «ABC» se rechaza; cfdi.test.js:80 acepta GODE561231GR8. |
+| RNF-39 | El sistema debe rechazar como RFC del cliente los RFC genéricos XAXX010101000 y XEXX010101000. | Adecuación funcional (corrección) | PA-06 | XAXX010101000 se rechaza con «genérico». XEXX010101000 se rechaza en la misma línea de código, sin aserción propia. |
+| RNF-40 | El sistema debe aceptar solo un régimen fiscal del catálogo c_RegimenFiscal del SAT que aplique al tipo de persona del RFC. | Adecuación funcional (corrección) | PA-06 | el régimen 601 con RFC de persona física se rechaza con «no aplica». |
+| RNF-41 | El sistema debe aceptar solo un uso del CFDI del catálogo c_UsoCFDI del SAT permitido para el régimen fiscal elegido. | Adecuación funcional (corrección) | PA-06 | el uso G03 con el régimen 605 se rechaza con «no se permite». |
+| RNF-42 | El sistema debe exigir un código postal fiscal de 5 dígitos. | Adecuación funcional (corrección) | PA-06 | el código postal 4505 se rechaza con «5 dígitos». |
+| RNF-43 | El sistema debe exigir una razón social de 1 a 254 caracteres que no contenga el carácter «\|». | Adecuación funcional (corrección) | Inspección: backend/src/cfdi/validar.js:109 | Una razón social vacía, de más de 254 caracteres o con «\|» se rechaza. |
+| RNF-44 | El sistema debe impedir que un producto aparezca dos veces en la lista de deseos de un mismo cliente. | Seguridad (integridad) | PA-57 | agregar dos veces deja el producto una sola vez (ON CONFLICT DO NOTHING). |
+| RNF-45 | El sistema debe mostrar cada lista de deseos solo a su propietario, incluidos los casos en que quien consulta es administrador. | Seguridad (confidencialidad) | PA-57 | otro cliente consulta su lista y recibe []. |
+| RNF-46 | El sistema debe retirar un producto de todas las listas de deseos al eliminar ese producto. | Seguridad (integridad) | Inspección: backend/db.sql:166 | lista_deseos.producto_id tiene ON DELETE CASCADE. |
+| RNF-47 | El sistema debe mostrar en la lista de deseos el precio y las existencias vigentes de cada producto. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js:493 | La lista se obtiene con JOIN a producto en cada consulta, así que precio y stock son los vigentes. |
+| RNF-48 | El sistema debe rechazar un pedido sin productos. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js:369 | Un pedido sin renglones recibe CARRITO_VACIO. |
+| RNF-49 | El sistema debe rechazar un pedido que incluya un producto que no exista en el catálogo. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js:396 | Un producto inexistente recibe PRODUCTO_NO_EXISTE. |
+| RNF-50 | El sistema debe rechazar un pedido si el cliente no tiene una dirección de envío registrada. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js:371 | Un cliente sin dirección recibe SIN_DIRECCION. |
+| RNF-51 | El sistema debe registrar el pedido y descontar sus existencias en una sola transacción, que se revierte completa si las existencias de algún producto son menores que la cantidad pedida. | Seguridad (integridad) | PA-52 | con stock insuficiente se recibe STOCK_INSUFICIENTE y el stock no cambia; api.test.js:74: un pedido válido descuenta 2 piezas. |
+| RNF-52 | El sistema debe calcular el total del pedido con los precios almacenados en la base de datos, sin aceptar importes enviados por el cliente. | Seguridad (integridad) | PA-52 | el total (90) lo calcula el servidor; la mutación crearPedido no recibe importes. |
+| RNF-53 | El sistema debe exigir que el cliente tenga registrados RFC, razón social, código postal fiscal, régimen fiscal y uso del CFDI antes de emitir una prefactura a su nombre. | Adecuación funcional (corrección) | PA-58 | pedir factura sin datos fiscales devuelve SIN_DATOS_FISCALES. |
+| RNF-54 | El sistema debe cambiar un pedido a Pagado solo después de confirmar con el proveedor de pagos que el monto y la moneda cobrados coinciden con los del pedido. | Seguridad (integridad) | Inspección: backend/src/pagos/index.js:118-129 | El pedido pasa a Pagado solo si pedidoId, moneda y monto (±0.01) del proveedor coinciden; si no, el resultado es RECHAZADO. PA-45 a PA-49 prueban la lectura de la respuesta de Mercado Pago, no esta comparación. |
+| RNF-55 | El sistema debe cobrar cada pedido como máximo una vez, aunque la solicitud de pago se repita. | Seguridad (integridad) | Inspección: backend/src/pagos/index.js:154-180; pagos/paypal.js:47; pagos/mercadopago.js:29; backend/db.sql:78 | Cada cobro envía una llave de idempotencia y la tabla pago tiene UNIQUE (proveedor, id_transaccion). |
+| RNF-56 | El sistema debe procesar pagos con tarjeta sin recibir ni almacenar el número de la tarjeta. | Seguridad (confidencialidad) | Inspección: backend/src/graphql/schema.js:320-321 | TarjetaInput recibe solo el token del Card Payment Brick; no existe ningún campo para el número de tarjeta. |
+| RNF-57 | El sistema debe operar en modo de prueba mientras su configuración no indique de forma explícita el modo de producción. | Seguridad (integridad) | Inspección: backend/src/pagos/modo.js:4 | MODO_PRUEBA es verdadero salvo que PAGOS_MODO sea exactamente «produccion». |
+| RNF-58.1 | El sistema debe rechazar y reembolsar, en modo de prueba, cualquier cobro con tarjeta que Mercado Pago apruebe y que no sea una operación de prueba. | Seguridad (integridad) | PA-45 | una orden real se marca como no aprobada y se llama a POST /v1/orders/{id}/refund. |
+| RNF-58.2 | El sistema debe aceptar, en modo de prueba, pagos con PayPal solo a través del entorno sandbox de PayPal. | Seguridad (integridad) | Inspección: backend/src/pagos/paypal.js:17 | En modo de prueba PayPal solo queda habilitado si PAYPAL_API es el sandbox. |
+| RNF-59 | El sistema debe permitir que el administrador marque como Pagado un pedido Pendiente solo en modo de prueba. | Seguridad (integridad) | PA-51 | Pendiente → Pagado solo aparece con modo de prueba. |
+| RNF-60 | El sistema debe mostrar cada pedido y su prefactura solo a su propietario y a los administradores. | Seguridad (confidencialidad) | PA-52 | otro cliente no ve el pedido y el ADMIN sí. La descarga de la prefactura aplica la misma regla (prefacturas.js:23). |
+| RNF-61 | El sistema debe permitir que el cliente cancele solo pedidos en estado Pendiente. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js:354 | Cancelar un pedido que no está Pendiente devuelve PEDIDO_NO_PENDIENTE. |
+| RNF-62 | El sistema debe reintegrar a las existencias las piezas de un pedido al cancelarlo. | Seguridad (integridad) | Inspección: backend/src/pedidos.js:38-45 | Al cancelar, en la misma transacción, stock = stock + cantidad de cada renglón. |
+| RNF-63 | El sistema debe aceptar solo calificaciones enteras de 1 a 5. | Adecuación funcional (corrección) | PA-16 | calificaciones fuera de 1-5 o no enteras se rechazan. |
+| RNF-64 | El sistema debe rechazar comentarios de reseña de más de 1000 caracteres. | Adecuación funcional (corrección) | PA-16 | un comentario de 1001 caracteres se rechaza con «muy largo». |
+| RNF-65 | El sistema debe conservar una sola reseña por cliente y producto; una nueva publicación del mismo cliente reemplaza la anterior. | Seguridad (autenticidad) | Inspección: backend/src/mongo/conexion.js:25; mongo/resenas.js:60-68 | Índice único (productoId, usuarioId) y escritura con upsert: una segunda reseña reemplaza la anterior. |
+| RNF-66 | El sistema debe marcar una reseña como compra verificada solo si el cliente tiene un pedido Pagado, Enviado o Entregado con ese producto. | Seguridad (autenticidad) | Inspección: backend/src/mongo/resenas.js:29 | compraVerificada se calcula con un pedido del cliente con ese producto y status Pagado, Enviado o Entregado. |
+| RNF-67 | El sistema debe permitir eliminar una reseña solo a su autor o a un administrador. | Seguridad (integridad) | Inspección: backend/src/mongo/resenas.js:72-76 | El filtro de borrado incluye usuarioId salvo que el usuario sea ADMIN. |
+| RNF-68 | El sistema debe emitir la prefactura a nombre de PUBLICO EN GENERAL (RFC XAXX010101000) cuando el pedido no requiera factura. | Adecuación funcional (corrección) | PA-58, PA-01 | sin factura, el receptor es XAXX010101000; cfdi.test.js:25: Nombre="PUBLICO EN GENERAL". |
+| RNF-69 | El sistema debe generar cada prefactura con la estructura del Anexo 20 del CFDI 4.0: nodos Comprobante, Emisor, Receptor, Conceptos e Impuestos, más InformacionGlobal cuando el receptor sea público en general. | Compatibilidad (interoperabilidad) | PA-01, PA-02 | XML con Version 4.0 e InformacionGlobal; cfdi.test.js:34: sin InformacionGlobal cuando hay RFC. |
+| RNF-70 | El sistema debe validar cada prefactura contra el esquema XSD del CFDI 4.0. | Compatibilidad (interoperabilidad) | PA-01, PA-04 | un XML correcto no tiene errores; cfdi.test.js:60-64: el XSD rechaza Moneda, ClaveUnidad, Rfc, Emisor y LugarExpedicion inválidos. |
+| RNF-71 | El sistema debe validar las claves de cada prefactura contra los catálogos del SAT de moneda, impuestos, régimen fiscal y uso del CFDI. | Compatibilidad (interoperabilidad) | PA-04, PA-05 | cfdi.test.js:60-61 y 74-75: claves fuera de catálogo y combinaciones régimen-uso inválidas se reportan. |
+| RNF-72 | El sistema debe almacenar con cada prefactura el resultado de su validación y la lista de errores encontrados. | Seguridad (responsabilidad) | Inspección: backend/migraciones/003-cfdi.sql:29-30 | La tabla prefactura tiene valida boolean NOT NULL y errores jsonb. |
+| RNF-73 | El sistema debe calcular los importes de la prefactura con 6 decimales, de modo que su total sea igual al monto cobrado. | Adecuación funcional (corrección) | PA-03 | para todo precio y cantidad probados, las reglas no encuentran diferencia entre total y monto cobrado. |
+| RNF-74 | El sistema debe conservar de cada prefactura una copia de respaldo del XML y del PDF, de acceso privado e independiente de su registro en la base de datos. | Fiabilidad (recuperabilidad) | Inspección: backend/src/cfdi/index.js:78-79; cloudinary.js:54 | El XML y el PDF se suben con tipo «authenticated» (no se abren con solo la URL) y la referencia queda en prefactura.respaldo. Requiere CLOUDINARY_URL. |
+| RNF-75 | El sistema debe enviar los correos después de confirmar la transacción correspondiente, de modo que una falla en el envío no la revierta. | Fiabilidad (tolerancia a fallos) | Inspección: backend/src/graphql/resolvers.js:424-427; pagos/index.js:185-190 | Los avisos por correo se llaman después de COMMIT y sin await que pueda revertir la transacción. correo.test.js no prueba este orden. |
+| RNF-76 | El sistema debe adjuntar la prefactura en XML y en PDF al correo de confirmación de pago. | Adecuación funcional (completitud) | Inspección: backend/src/correo/avisos.js:41-57, PA-10 | El correo de pago adjunta prefactura-<serie><folio>.pdf y .xml; correo.test.js:28 solo comprueba que el texto menciona la prefactura. |
+| RNF-77 | El sistema debe aplicar a cada asistente MCP los mismos permisos que al token del usuario que lo conecta. | Seguridad (confidencialidad) | PA-55, PM-36 | un token inválido recibe 401. La parte con token válido (mcp.test.js:83-93) se omite en CI por falta de MCP_EMAIL y MCP_PASSWORD. |
+| RNF-78 | El sistema debe permitir sin token solo las consultas públicas del catálogo y de los kits por MCP. | Seguridad (confidencialidad) | PA-54 | sin token solo aparecen las 5 herramientas públicas. |
+| RNF-79 | El sistema debe verificar en el servidor el rol de administrador en cada operación administrativa. | Seguridad (confidencialidad) | PA-52 | un CLIENTE que consulta usuarios recibe FORBIDDEN. |
+| RNF-80.1 | El sistema debe mostrar en el tablero de ventas el total vendido: la suma del total de todos los pedidos en estado Pagado, Enviado o Entregado. | Adecuación funcional (completitud) | Inspección: backend/src/graphql/resolvers.js:612, 635, PM-13 | ventas = suma de total con status Pagado, Enviado o Entregado, sin límite de fechas. |
+| RNF-80.2 | El sistema debe mostrar en el tablero de ventas el ticket promedio: el total vendido (RNF-80.1) dividido entre el número de pedidos en estado Pagado, Enviado o Entregado, redondeado a 2 decimales, o 0 si no hay pedidos vendidos. | Adecuación funcional (completitud) | Inspección: backend/src/graphql/resolvers.js:613, 637, PM-13 | ticketPromedio = round(ventas / pedidos_vendidos × 100) / 100, o 0. |
+| RNF-80.3 | El sistema debe mostrar en el tablero de ventas, para cada uno de los 5 estados de pedido, el número de pedidos y la suma de sus totales. | Adecuación funcional (completitud) | Inspección: backend/src/graphql/resolvers.js:618-621, PM-13 | Una fila por cada valor de status_pedido (5), con count y suma de total, incluidos Pendiente y Cancelado. |
+| RNF-80.4 | El sistema debe mostrar en el tablero de ventas, para cada uno de los últimos N días (N de 1 a 90; 14 por omisión), el número y la suma de los totales de los pedidos Pagado, Enviado o Entregado de ese día, con 0 en los días sin ventas. | Adecuación funcional (completitud) | Inspección: backend/src/graphql/resolvers.js:111, 623-626; graphql/schema.js:417, PM-13 | generate_series de los últimos dias (1-90, 14 por omisión) con LEFT JOIN: los días sin ventas valen 0. |
+| RNF-80.5 | El sistema debe mostrar en el tablero de ventas, para cada proveedor de pagos, el número y la suma de sus pagos aprobados. | Adecuación funcional (completitud) | Inspección: backend/src/graphql/resolvers.js:631-632, PM-13 | Agrupa la tabla pago con estado APROBADO por proveedor. |
+| RNF-80.6 | El sistema debe mostrar en el tablero de ventas los 5 productos con más unidades vendidas en pedidos Pagado, Enviado o Entregado, desempatados por monto vendido. | Adecuación funcional (completitud) | Inspección: backend/src/graphql/resolvers.js:627-629, PM-13 | ORDER BY unidades DESC, monto DESC LIMIT 5 sobre pedidos vendidos. |
+| RNF-80.7 | El sistema debe mostrar en el tablero de ventas los productos cuyas existencias sean menores o iguales al stock mínimo (5 por omisión). | Adecuación funcional (completitud) | Inspección: backend/src/graphql/resolvers.js:630; graphql/schema.js:417, PM-13 | stock <= stockMinimo (5 por omisión). |
+| RNF-81 | — (retirado) | — | — | Retirado en v2.0: su condición (solo pedidos Pagado, Enviado o Entregado) se incorporó a la definición de cada indicador en RNF-80.1 a RNF-80.7. No aplicaba a RNF-80.3, RNF-80.5 ni RNF-80.7, que el código calcula con otros datos. |
+| RNF-82 | El sistema debe mostrar a los administradores conectados cada pedido nuevo o cambio de estado en menos de 2 segundos después de confirmarse. | Eficiencia de desempeño (comportamiento temporal) | PM-29 | La fila nueva aparece en /admin/pedidos en menos de 2 s en 10 de 10 repeticiones. PA-53 solo comprueba que el evento llega antes de 10 s (subscripciones.test.js:48), así que no verifica el umbral. |
+| RNF-83 | El sistema debe mostrar a los administradores conectados cada cambio de existencias en menos de 2 segundos después de confirmarse. | Eficiencia de desempeño (comportamiento temporal) | PM-14 | El stock cambia en /admin/productos en menos de 2 s, sin recargar. |
+| RNF-84 | El sistema debe aceptar suscripciones en tiempo real solo de cuentas con rol de administrador. | Seguridad (confidencialidad) | PA-53 | un CLIENTE que se suscribe recibe FORBIDDEN. |
+| RNF-85 | El sistema debe exigir un nombre de categoría de 1 a 100 caracteres. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js:602 | Un nombre vacío o de más de 100 caracteres recibe CATEGORIA_INVALIDA. |
+| RNF-86 | El sistema debe rechazar descripciones de categoría de más de 255 caracteres. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js:603 | Una descripción de más de 255 caracteres recibe CATEGORIA_INVALIDA. |
+| RNF-87 | El sistema debe impedir la eliminación de una categoría que tenga productos. | Seguridad (integridad) | Inspección: backend/src/graphql/resolvers.js:295-296; backend/db.sql:28 | La llave foránea producto.categoria_id impide el borrado (23503) y se responde CATEGORIA_CON_PRODUCTOS. |
+| RNF-88 | El sistema debe rechazar precios negativos. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js:585; backend/db.sql:24 | Un precio negativo recibe PRODUCTO_INVALIDO; la base además tiene CHECK (precio >= 0). |
+| RNF-89 | El sistema debe rechazar existencias negativas. | Adecuación funcional (corrección) | Inspección: backend/db.sql:27 | CHECK (stock >= 0). |
+| RNF-90 | El sistema debe aceptar un precio anterior solo si es mayor que el precio actual del producto. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js:587; backend/db.sql:139-140 | Un precio anterior menor o igual al precio recibe PRODUCTO_INVALIDO; la base tiene CHECK (precio_anterior > precio). |
+| RNF-91 | El sistema debe aceptar como clave de producto o servicio del SAT solo claves de 8 dígitos. | Adecuación funcional (corrección) | Inspección: backend/src/graphql/resolvers.js:593-594 | Una clave que no cumpla ^\d{8}$ recibe PRODUCTO_INVALIDO. |
+| RNF-92 | El sistema debe rechazar imágenes de producto de más de 5 MB. | Seguridad (resistencia) | Inspección: frontend/src/lib/imagen.js:16; backend/src/cloudinary.js:93 | Subida desde el panel: el límite de 5 MB solo se revisa en el navegador (imagen.js:16) y la firma de subida (cloudinary.js:37-51) no limita bytes. Importación desde Mouser: el servidor rechaza más de 5 MB (cloudinary.js:93). PA-31 no comprueba el tamaño. |
+| RNF-93 | El sistema debe aceptar como imagen de producto solo direcciones de los orígenes autorizados en la restricción de diseño RD-08. | Seguridad (integridad) | PA-32 | rutas /productos/… y https://res.cloudinary.com/… se aceptan; otras direcciones se rechazan. |
+| RNF-94 | El sistema debe impedir la eliminación de un producto que aparezca en algún pedido. | Seguridad (integridad) | Inspección: backend/db.sql:54; backend/src/graphql/resolvers.js:270-271 | La llave foránea detalle_pedido.producto_id impide el borrado y se responde PRODUCTO_CON_PEDIDOS. |
+| RNF-95 | El sistema debe eliminar la ficha técnica y las reseñas de un producto al eliminar ese producto. | Seguridad (integridad) | Inspección: backend/src/graphql/resolvers.js:265-266 | Al eliminar un producto se llama a borrarFicha y a borrarResenasDeProducto. |
+| RNF-96 | El sistema debe limitar la ficha técnica a 40 especificaciones. | Adecuación funcional (corrección) | PA-15 | 41 especificaciones se rechazan con «Máximo 40». |
+| RNF-97 | El sistema debe rechazar especificaciones a las que les falte el nombre o el valor. | Adecuación funcional (corrección) | PA-15 | una fila sin valor se rechaza con «nombre y valor». |
+| RNF-98 | El sistema debe rechazar una especificación cuyo nombre ya exista en la misma ficha. | Adecuación funcional (corrección) | PA-15 | «RAM» y «ram» en la misma ficha se rechazan. |
+| RNF-99 | — (retirado) | — | — | Retirado en v2.0: la caché de 10 minutos es una técnica de diseño; pasa a la restricción RD-19, que contribuye a RNF-100. |
+| RNF-100 | El sistema debe rechazar, con un mensaje que pida esperar, una búsqueda en Mouser cuando ya se hayan hecho 25 en los últimos 60 segundos. | Eficiencia de desempeño (capacidad) | PA-39 | la búsqueda que pasa el tope recibe un error que pide esperar un minuto. |
+| RNF-101 | El sistema debe calcular el precio sugerido como precio unitario × tipo de cambio configurado × margen configurado × 1.16 (IVA), redondeado al peso hacia arriba. | Adecuación funcional (corrección) | PA-34 | con tipo de cambio 20 y margen 1.5, 0.80 USD × 20 × 1.5 × 1.16 = 27.84 se redondea a 28 MXN. |
+| RNF-102 | El sistema debe importar solo imágenes de mouser.com servidas por https. | Seguridad (integridad) | PA-37 | www y eu.mouser.com por https se aceptan; http, dominios que imitan a mouser.com y textos que no son URL se rechazan. |
+| RNF-103 | El sistema debe rechazar cualquier cambio de estado de un pedido distinto de los que permiten RF-49, RF-50, RF-51 y RF-52. | Seguridad (integridad) | PA-50, PA-59 | Entregado y Cancelado no tienen estados siguientes; facturacion.test.js:90: una transición no permitida recibe TRANSICION_INVALIDA. |
+| RNF-104 | El sistema debe impedir que un pedido cancelado cambie de estado. | Seguridad (integridad) | PA-50 | Cancelado no tiene estados siguientes; el resolver responde PEDIDO_CANCELADO. |
+| RNF-105 | El sistema debe registrar la fecha y la hora de cada cambio de estado de un pedido mientras la base de documentos esté disponible. | Seguridad (responsabilidad) | Inspección: backend/src/mongo/pedidos.js:43-49, PM-17 | Cada cambio hace $push de {status, fecha} en el historial (si MongoDB está disponible). |
+| RNF-106 | El sistema debe impedir que un administrador cambie su propio rol. | Seguridad (integridad) | Inspección: backend/src/graphql/resolvers.js:341-344 | Cambiar el rol propio recibe ROL_PROPIO. |
+| RNF-107.1 | El sistema debe registrar en la bitácora un evento PEDIDO_CREADO por cada pedido creado. | Seguridad (responsabilidad) | Inspección: backend/src/eventos.js:25 | registrar('PEDIDO_CREADO', …) |
+| RNF-107.2 | El sistema debe registrar en la bitácora un evento PEDIDO_ESTADO por cada cambio de estado de un pedido. | Seguridad (responsabilidad) | Inspección: backend/src/eventos.js:27 | registrar('PEDIDO_ESTADO', …) |
+| RNF-107.3 | El sistema debe registrar en la bitácora un evento PAGO_APROBADO por cada pago aprobado. | Seguridad (responsabilidad) | Inspección: backend/src/pagos/index.js:191 | registrar('PAGO_APROBADO', …) |
+| RNF-107.4 | El sistema debe registrar en la bitácora un evento PAGO_RECHAZADO por cada pago rechazado. | Seguridad (responsabilidad) | Inspección: backend/src/pagos/index.js:136 | registrar('PAGO_RECHAZADO', …) |
+| RNF-107.5 | El sistema debe registrar en la bitácora un evento PRODUCTO_CREADO por cada producto registrado. | Seguridad (responsabilidad) | Inspección: backend/src/graphql/resolvers.js:237 | registrar('PRODUCTO_CREADO', …) |
+| RNF-107.6 | El sistema debe registrar en la bitácora un evento PRODUCTO_ACTUALIZADO por cada modificación de un producto o de su ficha técnica. | Seguridad (responsabilidad) | Inspección: backend/src/graphql/resolvers.js:164, 253 | registrar('PRODUCTO_ACTUALIZADO', …) al guardar el producto y al guardar la ficha |
+| RNF-107.7 | El sistema debe registrar en la bitácora un evento PRODUCTO_ELIMINADO por cada producto eliminado. | Seguridad (responsabilidad) | Inspección: backend/src/graphql/resolvers.js:264 | registrar('PRODUCTO_ELIMINADO', …) |
+| RNF-107.8 | El sistema debe registrar en la bitácora un evento REGISTRO por cada cuenta creada, con correo o con Google. | Seguridad (responsabilidad) | Inspección: backend/src/rutas/registro.js:36; rutas/oauth.js:68 | registrar('REGISTRO', …) con correo y con Google |
+| RNF-107.9 | El sistema debe registrar en la bitácora un evento LOGIN_FALLIDO por cada intento de inicio de sesión rechazado. | Seguridad (responsabilidad) | Inspección: backend/src/rutas/oauth.js:31, PM-26 | registrar('LOGIN_FALLIDO', …) con la IP en datos |
+| RNF-107.10 | El sistema debe registrar en la bitácora un evento LOGIN_GOOGLE por cada inicio de sesión con Google de una cuenta existente. | Seguridad (responsabilidad) | Inspección: backend/src/rutas/oauth.js:68 | registrar('LOGIN_GOOGLE', …) |
+| RNF-107.11 | El sistema debe registrar en la bitácora un evento PASSWORD_RESTABLECIDO por cada contraseña restablecida. | Seguridad (responsabilidad) | Inspección: backend/src/rutas/recuperar.js:82 | registrar('PASSWORD_RESTABLECIDO', …) |
+| RNF-107.12 | El sistema debe registrar en la bitácora un evento CORREO_ENVIADO por cada correo que el servicio de correo acepte. | Seguridad (responsabilidad) | Inspección: backend/src/correo/enviar.js:62 | registrar('CORREO_ENVIADO', …) |
+| RNF-107.13 | El sistema debe registrar en la bitácora un evento CORREO_FALLIDO por cada correo que no se pueda enviar. | Seguridad (responsabilidad) | Inspección: backend/src/correo/enviar.js:59 | registrar('CORREO_FALLIDO', …) |
+| RNF-107.14 | El sistema debe registrar en la bitácora un evento RESENA por cada reseña publicada. | Seguridad (responsabilidad) | Inspección: backend/src/graphql/resolvers.js:180 | registrar('RESENA', …) |
+| RNF-107.15 | El sistema debe registrar en la bitácora un evento RESPALDO_FALLIDO por cada respaldo de prefactura que no se pueda guardar. | Seguridad (responsabilidad) | Inspección: backend/src/cfdi/index.js:82 | registrar('RESPALDO_FALLIDO', …) |
+| RNF-108 | El sistema debe eliminar de la bitácora los eventos con más de 90 días de antigüedad. | Mantenibilidad (modificabilidad) | Inspección: backend/src/mongo/conexion.js:15, 30 | Índice TTL sobre fecha con expireAfterSeconds = 90 × 24 × 3600. |
+| RNF-109 | El sistema debe enviar el aviso de stock bajo cuando las existencias de un producto pasen de más del stock mínimo a un valor igual o menor que él. | Adecuación funcional (completitud) | Inspección: backend/src/correo/avisos.js:64-66, PA-12 | Solo se avisa de los productos con antes > STOCK_MINIMO y después ≤ STOCK_MINIMO; correo.test.js:39-44 prueba el contenido del aviso. |
+| RNF-110 | El sistema debe usar un stock mínimo configurable con valor predeterminado de 5 unidades. | Mantenibilidad (modificabilidad) | Inspección: backend/src/correo/avisos.js:9 | STOCK_MINIMO = Number(process.env.STOCK_MINIMO) \|\| 5. |
+| RNF-111 | El sistema debe mantener disponibles el catálogo y la compra cuando la base de documentos o un servicio externo no respondan, desactivando solo la función afectada. | Fiabilidad (tolerancia a fallos) | PA-18, PA-13, PA-28, PA-44 | Sin MongoDB, Resend o Google, la función se apaga sin error (mongo.test.js:54-60, correo.test.js:47-61, google.test.js:55); si HERE falla, la dirección se guarda (mapas.test.js:81). Cloudinary y Mouser solo por inspección; no hay prueba de punta a punta con un servicio caído. |
+| RNF-112 | El sistema debe ofrecer una ruta pública que indique si el servicio está activo. | Fiabilidad (disponibilidad) | PA-64, PM-35 | GET / responde 200 {"ok":true,"version":"<commit>"} (paso «Levantar el backend» del CI y medición del 25-11-2026). |
+| RNF-113 | El sistema debe mantener las credenciales de los servicios externos fuera del código fuente y del repositorio. | Seguridad (confidencialidad) | Inspección: .gitignore:2; backend/.gitignore:2; render.yaml (sync: false); backend/.env.example | .env está ignorado; cada secreto de render.yaml tiene sync: false y aparece vacío o de ejemplo en .env.example (incluido GOOGLE_CLIENT_ID desde v2.0). |
+| RNF-114 | El sistema debe cifrar las comunicaciones entre el navegador, el servidor y las bases de datos. | Seguridad (confidencialidad) | PM-33 | http:// del backend y del frontend responde 301 a https://; DATABASE_URL usa sslmode=verify-full y MongoDB usa mongodb+srv (TLS). |
+| RNF-115 | El sistema debe aceptar peticiones del navegador solo desde los orígenes configurados. | Seguridad (resistencia) | PM-34 | Una petición preflight desde un origen ajeno no recibe Access-Control-Allow-Origin; desde https://voltrixf.netlify.app sí. |
+| RNF-116 | El sistema debe aplicar los cambios de esquema de la base de datos sin eliminar los datos existentes. | Mantenibilidad (modificabilidad) | PA-63, Inspección: backend/migraciones/*.sql | Las migraciones solo usan CREATE … IF NOT EXISTS, ADD COLUMN IF NOT EXISTS o bloques condicionales; ninguna usa DROP de datos. |
+| RNF-117 | El sistema debe permitir aplicar cada cambio de esquema más de una vez sin efecto adicional. | Mantenibilidad (modificabilidad) | PA-63 | En CI se aplican las 10 migraciones sobre una base creada con db.sql, que ya las contiene, y terminan sin error (✔ 001 a 010). |
+| RNF-118 | — (retirado) | — | — | Retirado en v2.0: es un requisito del proceso de desarrollo, no del producto; pasa a la restricción RD-20. |
+| RNF-119 | El sistema debe entregar la página de resultados de búsqueda del catálogo con un percentil 95 de tiempo de respuesta de 2 segundos o menos, en una serie de 20 solicitudes consecutivas con el servidor activo (no suspendido por inactividad). | Eficiencia de desempeño (comportamiento temporal) | PM-30 | Percentil 95 de 20 solicitudes ≤ 2 s. Medido con curl el 25-11-2026: p50 0.67 s, p95 0.86 s, máx. 2.12 s. Falta medir en el navegador. |
+| RNF-120 | El sistema debe mostrar todas sus páginas sin desplazamiento horizontal en pantallas desde 360 píxeles de ancho. | Capacidad de interacción (operabilidad) | PM-31 | En cada página, document.documentElement.scrollWidth ≤ 360 con una ventana de 360 px. |
+| RNF-121 | El sistema debe mostrar los mensajes de error en español. | Capacidad de interacción (protección contra errores del usuario) | Inspección: backend/src/graphql/resolvers.js (errorDeNegocio) | Todos los mensajes de errorDeNegocio, de registro.js y de recuperar.js están en español. |
+| RNF-122 | El sistema debe indicar en cada mensaje de error de validación el dato que el usuario debe corregir. | Capacidad de interacción (protección contra errores del usuario) | Inspección: backend/src/graphql/resolvers.js:585-603; direccion.js:24-28 | Cada mensaje de validación nombra el dato a corregir (por ejemplo, «El código postal debe tener 5 dígitos.»). |
+| RNF-123 | El sistema debe funcionar en las dos versiones estables más recientes de Chrome, Firefox, Edge y Safari. | Flexibilidad (adaptabilidad) | PM-32 | El proceso de compra se completa en modo de prueba en Chrome, Firefox, Edge y Safari sin errores en la consola. |
 
 ### 3.2 Matriz de trazabilidad
 
-Cada fila liga un requerimiento funcional con los RNF que lo condicionan (números de la sección 3.1), el componente del repositorio que lo implementa y la forma de verificarlo. Las pruebas automatizadas se ejecutan en el pipeline de CI en cada push (backend/test y frontend/test); las demostraciones describen los pasos para comprobar el requerimiento en la aplicación desplegada.
+Cada fila liga un requerimiento funcional con los RNF que lo condicionan (números de la sección 3.1), el componente del repositorio que lo implementa y la forma de verificarlo. La columna Verificación usa los identificadores del Apéndice F: PA para las pruebas automatizadas, que el pipeline de CI ejecuta en cada push, y PM para las demostraciones, cada una con sus pasos y su resultado esperado. Una prueba se cita solo si una de sus aserciones comprueba el requerimiento; si no, se indica la inspección del archivo correspondiente.
 
 | RF | RNF | Componente que lo implementa | Verificación |
 |---|---|---|---|
-| RF-01 | 01, 02, 03, 04, 05, 06 | frontend/src/components/FormSesion.jsx; backend/src/rutas/registro.js | Prueba automatizada: backend/test/api.test.js |
-| RF-02 | 07, 08, 09, 10, 11 | frontend/src/components/FormSesion.jsx; backend/src/rutas/oauth.js, backend/src/auth.js | Prueba automatizada: backend/test/api.test.js |
-| RF-03 | 12, 13, 14 | frontend/src/components/BotonGoogle.jsx; backend/src/google.js | Prueba automatizada: backend/test/google.test.js |
-| RF-04 | 11, 17, 18 | frontend/src/components/RecuperarPassword.jsx; backend/src/rutas/recuperar.js | Prueba automatizada: backend/test/correo.test.js |
-| RF-05 | 04, 15, 16, 19, 20 | frontend/src/components/RecuperarPassword.jsx; backend/src/rutas/recuperar.js | Demostración: abrir el enlace del correo, cambiar la contraseña y volver a usar el enlace |
-| RF-06 | 119 | frontend/src/pages/categoria/[id].astro; backend/src/catalogo.js | Demostración: abrir una categoría del menú lateral |
-| RF-07 | 22, 119 | frontend/src/pages/buscar.astro; backend/src/catalogo.js | Prueba automatizada: backend/test/mcp.test.js |
-| RF-08 | — | frontend/src/pages/buscar.astro; backend/src/catalogo.js | Demostración: elegir una categoría en /buscar |
-| RF-09 | 23 | frontend/src/pages/buscar.astro; backend/src/catalogo.js | Demostración: activar «Solo ofertas» en /buscar |
-| RF-10 | 24 | frontend/src/pages/buscar.astro, frontend/src/lib/api.js; backend/src/catalogo.js | Demostración: cambiar el orden en /buscar |
-| RF-11 | 25 | frontend/src/pages/producto/[id].astro; backend/src/mongo/fichas.js | Prueba automatizada: backend/test/mongo.test.js |
-| RF-12 | 26 | frontend/src/components/Resenas.jsx; backend/src/mongo/resenas.js | Prueba automatizada: backend/test/mongo.test.js |
-| RF-13 | 27, 28, 29, 30, 31 | frontend/src/components/ArmaKit.jsx; backend/src/kits/recomendador.js | Prueba automatizada: backend/test/kits.test.js |
-| RF-14 | 33 | frontend/src/components/ArmaKit.jsx, frontend/src/lib/carrito.js | Demostración: en /kit, pulsar «Agregar todo al carrito» |
-| RF-15 | 32, 33, 34 | frontend/src/components/AgregarAlCarrito.jsx, frontend/src/lib/carrito.js | Prueba automatizada: frontend/test/carrito.test.js |
-| RF-16 | 32, 33 | frontend/src/components/Carrito.jsx, frontend/src/lib/carrito.js | Prueba automatizada: frontend/test/carrito.test.js |
-| RF-17 | 34 | frontend/src/components/Carrito.jsx, frontend/src/lib/carrito.js | Prueba automatizada: frontend/test/carrito.test.js |
-| RF-18 | 78 | backend/src/mcp/servidor.js, backend/src/rutas/mcp.js | Prueba automatizada: backend/test/mcp.test.js |
-| RF-19 | 29, 78 | backend/src/mcp/servidor.js | Prueba automatizada: backend/test/mcp.test.js |
-| RF-20 | 06, 35, 36 | frontend/src/components/Direccion.jsx; backend/src/direccion.js, backend/src/mapas.js | Prueba automatizada: backend/test/mapas.test.js |
-| RF-21 | 35, 37 | frontend/src/components/Mapa.jsx, frontend/src/components/Direccion.jsx; backend/src/mapas.js | Prueba automatizada: backend/test/mapas.test.js |
-| RF-22 | 38, 39, 40, 41, 42, 43 | frontend/src/components/DatosFiscales.jsx; backend/src/cfdi/validar.js | Prueba automatizada: backend/test/cfdi.test.js |
-| RF-23 | — | frontend/src/components/DatosFiscales.jsx; backend/src/graphql/resolvers.js | Demostración: en Mi cuenta › Datos de facturación, pulsar «Borrar» |
-| RF-24 | 44 | frontend/src/components/BotonDeseo.jsx, frontend/src/lib/deseos.js; backend/src/graphql/resolvers.js | Prueba automatizada: backend/test/deseos.test.js |
-| RF-25 | — | frontend/src/components/ListaDeseos.jsx | Prueba automatizada: backend/test/deseos.test.js |
-| RF-26 | 45, 46, 47 | frontend/src/components/ListaDeseos.jsx; backend/src/graphql/resolvers.js | Prueba automatizada: backend/test/deseos.test.js |
-| RF-27 | 32, 48, 49, 50, 51, 52 | frontend/src/components/Checkout.jsx; backend/src/graphql/resolvers.js | Prueba automatizada: backend/test/api.test.js |
-| RF-28 | 53 | frontend/src/components/Checkout.jsx; backend/src/graphql/resolvers.js | Prueba automatizada: backend/test/facturacion.test.js |
-| RF-29 | 54, 55, 57 | frontend/src/components/PagoPaypal.jsx; backend/src/pagos/paypal.js, backend/src/pagos/index.js | Demostración: pagar con una cuenta sandbox de PayPal |
-| RF-30 | 54, 55, 56, 57, 58 | frontend/src/components/PagoTarjeta.jsx; backend/src/pagos/mercadopago.js | Prueba automatizada: backend/test/modo-prueba.test.js |
-| RF-31 | 60 | frontend/src/components/Cuenta.jsx; backend/src/graphql/resolvers.js | Prueba automatizada: backend/test/api.test.js |
-| RF-32 | 54 | frontend/src/components/Cuenta.jsx; backend/src/pagos/index.js, backend/src/rutas/webhooks.js | Demostración: en Mi cuenta, pulsar «Verificar pago en revisión» |
-| RF-33 | 61, 62 | frontend/src/components/Cuenta.jsx; backend/src/pedidos.js | Demostración: cancelar un pedido Pendiente y comprobar que el stock regresa |
-| RF-34 | 63, 64, 65, 66 | frontend/src/components/Resenas.jsx; backend/src/mongo/resenas.js | Prueba automatizada: backend/test/mongo.test.js |
-| RF-35 | 67 | frontend/src/components/Resenas.jsx; backend/src/mongo/resenas.js | Demostración: eliminar la reseña propia en la página del producto |
-| RF-36 | 53, 70, 71 | frontend/src/components/Cuenta.jsx; backend/src/graphql/resolvers.js | Prueba automatizada: backend/test/facturacion.test.js |
-| RF-37 | 70, 71, 72 | frontend/src/components/Cuenta.jsx; backend/src/cfdi/index.js | Demostración: en Mi cuenta, pulsar «Regenerar con mis datos» en un pedido pagado |
-| RF-38 | 60, 68, 69, 70, 71, 73, 74 | frontend/src/lib/prefactura.js; backend/src/rutas/prefacturas.js, backend/src/cfdi/generar.js | Prueba automatizada: backend/test/cfdi.test.js |
-| RF-39 | 60, 73, 74 | frontend/src/lib/prefactura.js; backend/src/rutas/prefacturas.js, backend/src/cfdi/pdf.js | Prueba automatizada: backend/test/cfdi.test.js |
-| RF-40 | 75 | backend/src/correo/avisos.js, backend/src/correo/plantillas.js | Prueba automatizada: backend/test/correo.test.js |
-| RF-41 | 75, 76 | backend/src/correo/avisos.js, backend/src/correo/plantillas.js | Prueba automatizada: backend/test/correo.test.js |
-| RF-42 | 21 | frontend/src/components/MenuUsuario.jsx, frontend/src/lib/sesion.js; backend/src/rutas/oauth.js | Prueba automatizada: backend/test/api.test.js |
-| RF-43 | 77 | backend/src/mcp/servidor.js | Prueba automatizada: backend/test/mcp.test.js |
-| RF-44 | 79, 80, 81 | frontend/src/components/admin/Resumen.jsx; backend/src/graphql/resolvers.js | Demostración: abrir /admin con una cuenta ADMIN |
-| RF-45 | 82, 84 | frontend/src/components/admin/AdminPedidos.jsx, frontend/src/lib/vivo.js; backend/src/eventos.js | Prueba automatizada: backend/test/subscripciones.test.js |
-| RF-46 | 83, 84 | frontend/src/components/admin/AdminProductos.jsx, frontend/src/lib/vivo.js; backend/src/eventos.js | Demostración: comprar en una ventana y ver /admin/productos en otra |
-| RF-47 | 79 | frontend/src/components/admin/AdminPedidos.jsx; backend/src/graphql/resolvers.js | Demostración: filtrar por estado en /admin/pedidos |
-| RF-48 | 79 | frontend/src/components/admin/AdminPedidos.jsx, frontend/src/components/Mapa.jsx; backend/src/mongo/pedidos.js | Demostración: desplegar un pedido en /admin/pedidos |
-| RF-49 | 79, 103, 105 | frontend/src/components/admin/AdminPedidos.jsx; backend/src/pedidos.js | Prueba automatizada: backend/test/facturacion.test.js |
-| RF-50 | 79, 103, 105 | frontend/src/components/admin/AdminPedidos.jsx; backend/src/pedidos.js | Prueba automatizada: backend/test/facturacion.test.js |
-| RF-51 | 62, 79, 103, 104 | frontend/src/components/admin/AdminPedidos.jsx; backend/src/pedidos.js | Prueba automatizada: backend/test/estados-pedido.test.js |
-| RF-52 | 59, 79 | frontend/src/components/admin/AdminPedidos.jsx; backend/src/pedidos.js | Prueba automatizada: backend/test/estados-pedido.test.js |
-| RF-53 | 105 | frontend/src/components/admin/AdminPedidos.jsx; backend/src/mongo/pedidos.js | Demostración: desplegar un pedido en /admin/pedidos |
-| RF-54 | 60, 79 | frontend/src/components/admin/AdminPedidos.jsx, frontend/src/lib/prefactura.js; backend/src/rutas/prefacturas.js | Demostración: pulsar «Imprimir» en /admin/pedidos |
-| RF-55 | 79, 85, 86 | frontend/src/components/admin/AdminCategorias.jsx; backend/src/graphql/resolvers.js | Demostración: crear una categoría en /admin/categorias |
-| RF-56 | 79, 85, 86 | frontend/src/components/admin/AdminCategorias.jsx; backend/src/graphql/resolvers.js | Demostración: editar una categoría en /admin/categorias |
-| RF-57 | 79, 87 | frontend/src/components/admin/AdminCategorias.jsx; backend/src/graphql/resolvers.js | Demostración: eliminar una categoría vacía y una con productos |
-| RF-58 | 79, 88, 89, 90, 91, 93 | frontend/src/components/admin/AdminProductos.jsx; backend/src/graphql/resolvers.js | Demostración: crear un producto en /admin/productos |
-| RF-59 | 79, 88, 89, 90, 91, 93 | frontend/src/components/admin/AdminProductos.jsx; backend/src/graphql/resolvers.js | Demostración: editar un producto en /admin/productos |
-| RF-60 | 46, 79, 94, 95 | frontend/src/components/admin/AdminProductos.jsx; backend/src/graphql/resolvers.js | Demostración: eliminar un producto sin pedidos y uno con pedidos |
-| RF-61 | 79, 92, 93 | frontend/src/components/admin/SubirImagen.jsx; backend/src/cloudinary.js | Prueba automatizada: backend/test/cloudinary.test.js |
-| RF-62 | 25, 79, 96, 97, 98 | frontend/src/components/admin/FichaEditor.jsx; backend/src/mongo/fichas.js | Prueba automatizada: backend/test/mongo.test.js |
-| RF-63 | 79, 99, 100 | frontend/src/components/admin/ImportarMouser.jsx; backend/src/mouser.js | Prueba automatizada: backend/test/mouser.test.js |
-| RF-64 | 79, 101, 102 | frontend/src/components/admin/ImportarMouser.jsx; backend/src/mouser.js | Prueba automatizada: backend/test/mouser.test.js |
-| RF-65 | 79 | frontend/src/components/admin/AdminUsuarios.jsx; backend/src/graphql/resolvers.js | Prueba automatizada: backend/test/api.test.js |
-| RF-66 | 79, 106 | frontend/src/components/admin/AdminUsuarios.jsx; backend/src/graphql/resolvers.js | Demostración: cambiar el rol de otro usuario y el propio en /admin/usuarios |
-| RF-67 | 79, 107, 108 | frontend/src/components/admin/AdminBitacora.jsx; backend/src/mongo/bitacora.js | Demostración: filtrar por tipo en /admin/bitacora |
-| RF-68 | 75, 109, 110 | backend/src/correo/avisos.js | Prueba automatizada: backend/test/correo.test.js |
-| RF-69 | 67, 79 | frontend/src/components/Resenas.jsx; backend/src/mongo/resenas.js | Demostración: con una cuenta ADMIN, eliminar una reseña ajena |
-| RF-70 | 77, 110 | backend/src/mcp/servidor.js | Demostración: conectar el asistente con un token ADMIN y usar «inventario_bajo» |
+| RF-01 | 01, 02, 03, 04, 05, 06.1, 06.2, 06.3, 06.4, 06.5 | frontend/src/components/FormSesion.jsx; backend/src/rutas/registro.js | PA-52 |
+| RF-02 | 07, 08, 09, 10, 11.1 | frontend/src/components/FormSesion.jsx; backend/src/rutas/oauth.js, backend/src/auth.js | PA-52 |
+| RF-03 | 12.1, 12.2, 12.3, 12.4, 13, 14 | frontend/src/components/BotonGoogle.jsx; backend/src/google.js | PA-25, PA-26, PA-27 |
+| RF-04 | 11.2, 17, 18 | frontend/src/components/RecuperarPassword.jsx; backend/src/rutas/recuperar.js | PA-11, IN: backend/src/rutas/recuperar.js:23-52 |
+| RF-05 | 04, 15, 16, 19, 20 | frontend/src/components/RecuperarPassword.jsx; backend/src/rutas/recuperar.js | PM-01 |
+| RF-06 | 119 | frontend/src/pages/categoria/[id].astro; backend/src/catalogo.js | PM-02 |
+| RF-07 | 22, 119 | frontend/src/pages/buscar.astro; backend/src/catalogo.js | PA-54, IN: backend/src/catalogo.js:26-30 |
+| RF-08 | — | frontend/src/pages/buscar.astro; backend/src/catalogo.js | PM-03 |
+| RF-09 | 23 | frontend/src/pages/buscar.astro; backend/src/catalogo.js | PM-04 |
+| RF-10 | 24 | frontend/src/pages/buscar.astro, frontend/src/lib/api.js; backend/src/catalogo.js | PM-05 |
+| RF-11 | 25 | frontend/src/pages/producto/[id].astro; backend/src/mongo/fichas.js | PA-14, PA-15 |
+| RF-12 | 26 | frontend/src/components/Resenas.jsx; backend/src/mongo/resenas.js | PA-17 |
+| RF-13 | 27, 28, 29, 30, 31 | frontend/src/components/ArmaKit.jsx; backend/src/kits/recomendador.js | PA-20, PA-22, PA-23, PA-24 |
+| RF-14 | 33 | frontend/src/components/ArmaKit.jsx, frontend/src/lib/carrito.js | PM-06 |
+| RF-15 | 32, 33, 34 | frontend/src/components/AgregarAlCarrito.jsx, frontend/src/lib/carrito.js | PA-60 |
+| RF-16 | 32, 33 | frontend/src/components/Carrito.jsx, frontend/src/lib/carrito.js | PA-60 |
+| RF-17 | 34 | frontend/src/components/Carrito.jsx, frontend/src/lib/carrito.js | PA-60 |
+| RF-18 | 78 | backend/src/mcp/servidor.js, backend/src/rutas/mcp.js | PA-54, PA-56 |
+| RF-19 | 29, 78 | backend/src/mcp/servidor.js | PA-54 |
+| RF-20 | 06.1, 06.2, 06.3, 06.4, 06.5, 35, 36 | frontend/src/components/Direccion.jsx; backend/src/direccion.js, backend/src/mapas.js | PA-40, PA-43, PA-44 |
+| RF-21 | 35, 37 | frontend/src/components/Mapa.jsx, frontend/src/components/Direccion.jsx; backend/src/mapas.js | PA-44 |
+| RF-22 | 38, 39, 40, 41, 42, 43 | frontend/src/components/DatosFiscales.jsx; backend/src/cfdi/validar.js | PA-06 |
+| RF-23 | — | frontend/src/components/DatosFiscales.jsx; backend/src/graphql/resolvers.js | PM-07 |
+| RF-24 | 44 | frontend/src/components/BotonDeseo.jsx, frontend/src/lib/deseos.js; backend/src/graphql/resolvers.js | PA-57 |
+| RF-25 | — | frontend/src/components/ListaDeseos.jsx | PA-57 |
+| RF-26 | 45, 46, 47 | frontend/src/components/ListaDeseos.jsx; backend/src/graphql/resolvers.js | PA-57 |
+| RF-27 | 32, 48, 49, 50, 51, 52 | frontend/src/components/Checkout.jsx; backend/src/graphql/resolvers.js | PA-52 |
+| RF-28 | 53 | frontend/src/components/Checkout.jsx; backend/src/graphql/resolvers.js | PA-58 |
+| RF-29 | 54, 55, 57, 58.2 | frontend/src/components/PagoPaypal.jsx; backend/src/pagos/paypal.js, backend/src/pagos/index.js | PM-08 |
+| RF-30 | 54, 55, 56, 57, 58.1 | frontend/src/components/PagoTarjeta.jsx; backend/src/pagos/mercadopago.js | PA-45, PA-48, PA-49 |
+| RF-31 | 60 | frontend/src/components/Cuenta.jsx; backend/src/graphql/resolvers.js | PA-52 |
+| RF-32 | 54 | frontend/src/components/Cuenta.jsx; backend/src/pagos/index.js, backend/src/rutas/webhooks.js | PM-09 |
+| RF-33 | 61, 62 | frontend/src/components/Cuenta.jsx; backend/src/pedidos.js | PM-10 |
+| RF-34 | 63, 64, 65, 66 | frontend/src/components/Resenas.jsx; backend/src/mongo/resenas.js | PA-16, IN: backend/src/mongo/resenas.js:60-68 |
+| RF-35 | 67 | frontend/src/components/Resenas.jsx; backend/src/mongo/resenas.js | PM-11 |
+| RF-36 | 53, 70, 71 | frontend/src/components/Cuenta.jsx; backend/src/graphql/resolvers.js | PA-58 |
+| RF-37 | 70, 71, 72 | frontend/src/components/Cuenta.jsx; backend/src/cfdi/index.js | PM-12 |
+| RF-38 | 60, 68, 69, 70, 71, 73, 74 | frontend/src/lib/prefactura.js; backend/src/rutas/prefacturas.js, backend/src/cfdi/generar.js | PA-01, PA-02, PA-04, IN: backend/src/rutas/prefacturas.js:23 |
+| RF-39 | 60, 73, 74 | frontend/src/lib/prefactura.js; backend/src/rutas/prefacturas.js, backend/src/cfdi/pdf.js | PA-08, IN: backend/src/rutas/prefacturas.js:23 |
+| RF-40 | 75 | backend/src/correo/avisos.js, backend/src/correo/plantillas.js | PA-09 |
+| RF-41 | 75, 76 | backend/src/correo/avisos.js, backend/src/correo/plantillas.js | PA-10 |
+| RF-42 | 21 | frontend/src/components/MenuUsuario.jsx, frontend/src/lib/sesion.js; backend/src/rutas/oauth.js | PA-52 |
+| RF-43 | 77 | backend/src/mcp/servidor.js | PA-55 (parcial), PM-36 |
+| RF-44 | 79, 80.1, 80.2, 80.3, 80.4, 80.5, 80.6, 80.7 | frontend/src/components/admin/Resumen.jsx; backend/src/graphql/resolvers.js | PM-13 |
+| RF-45 | 82, 84 | frontend/src/components/admin/AdminPedidos.jsx, frontend/src/lib/vivo.js; backend/src/eventos.js | PA-53 |
+| RF-46 | 83, 84 | frontend/src/components/admin/AdminProductos.jsx, frontend/src/lib/vivo.js; backend/src/eventos.js | PM-14 |
+| RF-47 | 79 | frontend/src/components/admin/AdminPedidos.jsx; backend/src/graphql/resolvers.js | PM-15 |
+| RF-48 | 79 | frontend/src/components/admin/AdminPedidos.jsx, frontend/src/components/Mapa.jsx; backend/src/mongo/pedidos.js | PM-16 |
+| RF-49 | 79, 103, 105 | frontend/src/components/admin/AdminPedidos.jsx; backend/src/pedidos.js | PA-50, PA-59 |
+| RF-50 | 79, 103, 105 | frontend/src/components/admin/AdminPedidos.jsx; backend/src/pedidos.js | PA-50, PA-59 |
+| RF-51 | 62, 79, 103, 104 | frontend/src/components/admin/AdminPedidos.jsx; backend/src/pedidos.js | PA-50 |
+| RF-52 | 59, 79 | frontend/src/components/admin/AdminPedidos.jsx; backend/src/pedidos.js | PA-51 |
+| RF-53 | 105 | frontend/src/components/admin/AdminPedidos.jsx; backend/src/mongo/pedidos.js | PM-17 |
+| RF-54 | 60, 79 | frontend/src/components/admin/AdminPedidos.jsx, frontend/src/lib/prefactura.js; backend/src/rutas/prefacturas.js | PM-18 |
+| RF-55 | 79, 85, 86 | frontend/src/components/admin/AdminCategorias.jsx; backend/src/graphql/resolvers.js | PM-19 |
+| RF-56 | 79, 85, 86 | frontend/src/components/admin/AdminCategorias.jsx; backend/src/graphql/resolvers.js | PM-20 |
+| RF-57 | 79, 87 | frontend/src/components/admin/AdminCategorias.jsx; backend/src/graphql/resolvers.js | PM-21 |
+| RF-58 | 79, 88, 89, 90, 91, 93 | frontend/src/components/admin/AdminProductos.jsx; backend/src/graphql/resolvers.js | PM-22 |
+| RF-59 | 79, 88, 89, 90, 91, 93 | frontend/src/components/admin/AdminProductos.jsx; backend/src/graphql/resolvers.js | PM-23 |
+| RF-60 | 46, 79, 94, 95 | frontend/src/components/admin/AdminProductos.jsx; backend/src/graphql/resolvers.js | PM-24 |
+| RF-61 | 79, 92, 93 | frontend/src/components/admin/SubirImagen.jsx; backend/src/cloudinary.js | PA-31, PA-32 |
+| RF-62 | 25, 79, 96, 97, 98 | frontend/src/components/admin/FichaEditor.jsx; backend/src/mongo/fichas.js | PA-14, PA-15 |
+| RF-63 | 79, 100 | frontend/src/components/admin/ImportarMouser.jsx; backend/src/mouser.js | PA-38, PA-39 |
+| RF-64 | 79, 101, 102 | frontend/src/components/admin/ImportarMouser.jsx; backend/src/mouser.js | PA-34, PA-37 |
+| RF-65 | 79 | frontend/src/components/admin/AdminUsuarios.jsx; backend/src/graphql/resolvers.js | PA-52, PM-37 |
+| RF-66 | 79, 106 | frontend/src/components/admin/AdminUsuarios.jsx; backend/src/graphql/resolvers.js | PM-25 |
+| RF-67 | 79, 107.1, 107.2, 107.3, 107.4, 107.5, 107.6, 107.7, 107.8, 107.9, 107.10, 107.11, 107.12, 107.13, 107.14, 107.15, 108 | frontend/src/components/admin/AdminBitacora.jsx; backend/src/mongo/bitacora.js | PM-26 |
+| RF-68 | 75, 109, 110 | backend/src/correo/avisos.js | PA-12, IN: backend/src/correo/avisos.js:64-66 |
+| RF-69 | 67, 79 | frontend/src/components/Resenas.jsx; backend/src/mongo/resenas.js | PM-27 |
+| RF-70 | 77, 110 | backend/src/mcp/servidor.js | PM-28 |
+
+### 3.3 Trazabilidad de requerimientos transversales y restricciones de diseño
+
+Los RNF-111 a RNF-123 aplican a todo el sistema y no condicionan un RF en particular, por eso no tienen fila en la matriz 3.2. Esta tabla los traza hasta su implementación y su verificación, junto con las restricciones RD-19 y RD-20, que en v1.0 eran los RNF-99 y RNF-118. El detalle por línea de código y el estado de cada requerimiento están en docs/TRAZABILIDAD.md.
+
+| ID | Alcance | Implementación | Verificación |
+|---|---|---|---|
+| RNF-111 | Todo el sistema | backend/src/mongo/conexion.js; correo/enviar.js; google.js; mapas.js:92-94 | PA-18, PA-13, PA-28, PA-44 |
+| RNF-112 | Todo el sistema | backend/src/index.js:88 | PA-64, PM-35 |
+| RNF-113 | Todo el sistema | .gitignore:2; backend/.gitignore:2; render.yaml (sync: false); backend/.env.example | Inspección |
+| RNF-114 | Todo el sistema | backend/.env.example:2, 62 | PM-33 |
+| RNF-115 | Todo el sistema | backend/src/index.js:37, 81 | PM-34 |
+| RNF-116 | Todo el sistema | backend/migraciones/*.sql | PA-63, Inspección |
+| RNF-117 | Todo el sistema | backend/migraciones/*.sql; backend/scripts/migrar.mjs | PA-63 |
+| RNF-119 | RF-06, RF-07 | frontend/src/pages/buscar.astro; backend/src/catalogo.js | PM-30 |
+| RNF-120 | Todo el sistema | frontend/src/styles/global.css | PM-31 |
+| RNF-121 | Todo el sistema | backend/src/graphql/resolvers.js (errorDeNegocio) | Inspección |
+| RNF-122 | Todo el sistema | backend/src/graphql/resolvers.js:585-603; direccion.js:24-28 | Inspección |
+| RNF-123 | Todo el sistema | frontend/ | PM-32 |
+| RD-19 | RF-63; contribuye a RNF-100 | backend/src/mouser.js:19 | PA-38 (mouser.test.js:103) |
+| RD-20 | Todo el sistema (proceso) | .github/workflows/ci.yml (job desplegar: needs backend, frontend) | PA-61, PA-62, PA-63, PA-64, PA-65 |
 
 ## 4. Interfaces externas
 
@@ -911,7 +975,7 @@ Voltrix integra 7 APIs de terceros; el SRS de referencia pide al menos 5.
 |---|---|---|---|
 | PayPal | Orders API v2 (REST) y JS SDK | Cobro con cuenta PayPal | RF-29 |
 | Mercado Pago | Orders API (REST), Card Payment Brick y webhook | Cobro con tarjeta | RF-30 |
-| Google Identity Services | ID token JWT | Inicio de sesión con Google | RF-03 |
+| Google Identity Services | ID token JWT firmado con RS256. Llaves públicas: https://www.googleapis.com/oauth2/v3/certs. Emisor: accounts.google.com o https://accounts.google.com (RNF-12.1 a RNF-12.4) | Inicio de sesión con Google | RF-03 |
 | Resend | REST | Correos de pedido, pago, recuperación y stock bajo | RF-40 |
 | Cloudinary | REST con subida firmada | Imágenes de producto y respaldo de prefacturas | RF-61 |
 | HERE Geocoding | REST | Coordenadas de la dirección de envío | RF-20 |
@@ -941,11 +1005,11 @@ Las restricciones de diseño son las decisiones de tecnología con que Voltrix c
 | RD-02 | El backend se ejecuta en Node.js 22 o superior con Express 5 y Apollo Server 5, y expone la API de datos en GraphQL en /graphql. | — | Exigido por el SRS de referencia (RF8.1). |
 | RD-03 | Los datos transaccionales se guardan en PostgreSQL 13 o superior (Neon); fichas, reseñas, historial y bitácora, en MongoDB (Atlas). | RNF-111 | Exigido por el SRS de referencia (§1.2). Lo que no necesita transacciones vive en MongoDB, para que su caída no detenga la compra. |
 | RD-04 | Las contraseñas se derivan con scrypt (node:crypto) con sal aleatoria de 16 bytes y clave de 64 bytes. | RNF-05 | Función de derivación resistente a fuerza bruta incluida en Node.js, sin dependencias externas. |
-| RD-05 | Las sesiones usan tokens OAuth 2.0 opacos (RFC 6749 y RFC 7009); la base guarda solo su SHA-256. | RNF-11 | Un token opaco se puede revocar en el acto; una copia de la base no permite suplantar a nadie. |
+| RD-05 | Las sesiones usan tokens OAuth 2.0 opacos (RFC 6749 y RFC 7009); la base guarda solo su SHA-256. | RNF-11.1, RNF-11.2 | Un token opaco se puede revocar en el acto; una copia de la base no permite suplantar a nadie. |
 | RD-06 | Los pagos se delegan a PayPal (Orders API v2) y a Mercado Pago (Orders API con Card Payment Brick). | RNF-56 | Exigido por el SRS de referencia (RF4.2, RNF2.2); el número de tarjeta nunca toca los servidores de Voltrix. |
 | RD-07 | Cada cobro usa una llave de idempotencia (PayPal-Request-Id o X-Idempotency-Key) y la tabla pago tiene una restricción única por (proveedor, id_transaccion). | RNF-55 | Evita cobros dobles ante reintentos de red o doble clic. |
-| RD-08 | Las imágenes y el respaldo privado de las prefacturas se guardan en Cloudinary. | RNF-74 | Almacenamiento y optimización de imágenes sin servidor de archivos propio. |
-| RD-09 | La geocodificación usa HERE; el mapa del navegador usa Leaflet con teselas de OpenStreetMap. | RNF-35 | Plan gratuito suficiente; la llave de HERE se queda en el backend. |
+| RD-08 | Las imágenes de producto se sirven desde la propia tienda (rutas /productos/…) o desde Cloudinary por https (res.cloudinary.com), que son los orígenes autorizados de RNF-93. El respaldo de las prefacturas se guarda en Cloudinary como archivos de tipo authenticated, que no se abren sin una URL firmada. | RNF-74, RNF-93 | Almacenamiento y optimización de imágenes sin servidor de archivos propio. |
+| RD-09 | La geocodificación usa HERE; el mapa del navegador usa Leaflet con teselas de OpenStreetMap. | RNF-35 | El backend consulta HERE cuando el cliente ubica su dirección en el mapa (consulta ubicarDireccion) o la guarda sin pin, y reutiliza el resultado de hasta 500 direcciones en caché (backend/src/mapas.js:86), así que el consumo es como máximo una consulta por dirección distinta mientras siga en caché; la llave de HERE se queda en el backend. |
 | RD-10 | El correo se envía con Resend; el inicio de sesión externo, con Google Identity Services. | RNF-75 | APIs de terceros requeridas por el SRS de referencia (§3.3). |
 | RD-11 | El tiempo real usa GraphQL Subscriptions sobre graphql-ws con un PubSub en memoria. | RNF-82 | Basta una instancia del backend en el plan actual; con varias se cambiaría por un PubSub compartido. |
 | RD-12 | La prefactura se valida con xmllint-wasm contra cfdi.xsd y su PDF se genera con pdfkit. | RNF-70 | Validación local, sin servicios externos ni PAC. |
@@ -953,8 +1017,10 @@ Las restricciones de diseño son las decisiones de tecnología con que Voltrix c
 | RD-14 | Los secretos viven en variables de entorno de Render y en secretos de GitHub Actions. | RNF-113 | Exigido por el SRS de referencia (RF9.3, RNF2.3). |
 | RD-15 | Las comunicaciones usan TLS: HTTPS, WSS y conexiones cifradas a Neon y a Atlas. | RNF-114 | Exigido por el SRS de referencia (RNF2.4). |
 | RD-16 | Los cambios de esquema se escriben como migraciones SQL numeradas e idempotentes en backend/migraciones. | RNF-116 | Permite actualizar producción sin borrar datos. |
-| RD-17 | El backend se despliega en Render y el frontend en Netlify, mediante GitHub Actions; CodeQL y Dependabot revisan la seguridad del código y de las dependencias. | RNF-118 | Exigido por el SRS de referencia (RF9.1, RF9.2). |
+| RD-17 | El backend se despliega en Render y el frontend en Netlify, mediante GitHub Actions; CodeQL y Dependabot revisan la seguridad del código y de las dependencias. | RD-20 | Exigido por el SRS de referencia (RF9.1, RF9.2). |
 | RD-18 | El código se escribe en JavaScript (módulos ES) sin TypeScript. | — | Ver la desviación D-06 de la sección 2.7. |
+| RD-19 | Los resultados de cada búsqueda en Mouser se guardan en una caché en memoria durante 10 minutos (antes RNF-99). | RNF-100 | Una búsqueda repetida no gasta la cuota gratuita de Mouser (unas 1000 consultas al día, sección 2.4). Verificada por PA-38. |
+| RD-20 | El pipeline de GitHub Actions despliega solo versiones que superen la validación estática, la auditoría de dependencias del backend sin vulnerabilidades altas y las pruebas automatizadas (antes RNF-118). | — | Es un requisito del proceso de desarrollo, no del producto; lo exige el SRS de referencia (RF9.1, RF9.2). Verificada por PA-61 a PA-65. |
 
 ### 5.3 Entornos y despliegue
 
@@ -1230,3 +1296,122 @@ Figura 17. Mockup de alta fidelidad: Arma tu kit con la recomendación de una es
 > Carrito con el kit agregado: tres renglones con cantidad editable y botón «Quitar», total de $285.00 y botón «Ir a pagar»; el ícono del carrito muestra 3 piezas.
 
 Figura 18. Mockup de alta fidelidad: Carrito con el kit agregado
+
+### Apéndice F. Catálogo de verificaciones
+
+Cada requerimiento se verifica con uno de tres métodos de ISO/IEC/IEEE 29148: **prueba automatizada (PA)**, que se ejecuta en el pipeline de CI en cada push; **demostración (PM)**, que una persona ejecuta en la aplicación siguiendo los pasos y compara con el resultado esperado; e **inspección**, que revisa la línea de código citada en la sección 3.1 y en docs/TRAZABILIDAD.md. Los resultados de cada ejecución se registran en docs/VERIFICACION.md.
+
+#### F.1 Pruebas automatizadas
+
+PA-01 a PA-60 son las 60 pruebas del repositorio, en el orden en que las ejecuta el CI (unitarias, punta a punta y frontend). PA-61 a PA-65 son pasos del pipeline que comprueban una condición.
+
+| ID | Archivo:línea | Prueba | Requisitos que verifica |
+|---|---|---|---|
+| PA-01 | backend/test/cfdi.test.js:17 | público en general: XML con InformacionGlobal, válido contra XSD y reglas | RNF-68, RNF-69, RNF-70, RF-38 |
+| PA-02 | backend/test/cfdi.test.js:30 | cliente con RFC: sin InformacionGlobal, con su régimen y uso | RNF-69, RF-38 |
+| PA-03 | backend/test/cfdi.test.js:39 | el total de la prefactura siempre es lo que se cobró (precios con IVA) | RNF-73 |
+| PA-04 | backend/test/cfdi.test.js:57 | el XSD rechaza estructura y claves fuera de catálogo | RNF-70, RNF-71, RF-38 |
+| PA-05 | backend/test/cfdi.test.js:67 | las reglas detectan cuentas que no cuadran y combinaciones inválidas | RNF-71 |
+| PA-06 | backend/test/cfdi.test.js:78 | datos fiscales del cliente: normaliza y rechaza lo inválido | RNF-38, RNF-39, RNF-40, RNF-41, RNF-42, RF-22 |
+| PA-07 | backend/test/cfdi.test.js:89 | fechaSat usa la hora de la Ciudad de México | Soporte (no traza a un requisito) |
+| PA-08 | backend/test/cfdi.test.js:93 | genera el PDF | RF-39 |
+| PA-09 | backend/test/correo.test.js:13 | pedido creado: detalles, total, dirección y HTML escapado | RF-40 |
+| PA-10 | backend/test/correo.test.js:24 | pago confirmado menciona el método y la prefactura adjunta | RNF-76, RF-41 |
+| PA-11 | backend/test/correo.test.js:32 | recuperar contraseña lleva el enlace y la vigencia | RF-04 |
+| PA-12 | backend/test/correo.test.js:39 | stock bajo: uno o varios productos, agotado resaltado | RNF-109, RF-68 |
+| PA-13 | backend/test/correo.test.js:47 | sin RESEND_API_KEY el correo se muestra en consola y no truena | RNF-111 |
+| PA-14 | backend/test/mongo.test.js:15 | ficha: limpia filas vacías y espacios | RF-11, RF-62 |
+| PA-15 | backend/test/mongo.test.js:29 | ficha: rechaza filas incompletas, repetidas, demasiadas y URLs raras | RNF-25, RNF-96, RNF-97, RNF-98, RF-11, RF-62 |
+| PA-16 | backend/test/mongo.test.js:38 | reseña: calificación 1-5 y comentario opcional | RNF-63, RNF-64, RF-34 |
+| PA-17 | backend/test/mongo.test.js:47 | nombre público: nombre + inicial | RNF-26, RF-12 |
+| PA-18 | backend/test/mongo.test.js:54 | sin MONGODB_URI todo se apaga sin errores | RNF-111 |
+| PA-19 | backend/test/kits.test.js:10 | normaliza acentos, mayúsculas y espacios | Soporte (no traza a un requisito) |
+| PA-20 | backend/test/kits.test.js:14 | elige la plantilla por las palabras del proyecto | RF-13 |
+| PA-21 | backend/test/kits.test.js:29 | todas las plantillas tienen ids únicos y piezas válidas | Soporte (no traza a un requisito) |
+| PA-22 | backend/test/kits.test.js:45 | presupuesto: sin presupuesto o si alcanza, la opción preferida | RF-13 |
+| PA-23 | backend/test/kits.test.js:51 | presupuesto: primero quita lo opcional, luego abarata lo que más ahorra | RNF-30, RNF-31, RF-13 |
+| PA-24 | backend/test/kits.test.js:61 | presupuesto: cuenta la cantidad y respeta piezas sin stock | RNF-29, RF-13 |
+| PA-25 | backend/test/google.test.js:30 | token válido: devuelve sub, correo normalizado y nombre | RF-03 |
+| PA-26 | backend/test/google.test.js:38 | rechaza firma ajena, otro client id, otro emisor y tokens vencidos | RNF-12.1, RNF-12.2, RNF-12.3, RNF-12.4, RF-03 |
+| PA-27 | backend/test/google.test.js:49 | rechaza correo sin verificar o ausente | RNF-13, RF-03 |
+| PA-28 | backend/test/google.test.js:54 | sin GOOGLE_CLIENT_ID o sin token, error claro | RNF-111 |
+| PA-29 | backend/test/cloudinary.test.js:9 | firma igual al ejemplo de la documentación de Cloudinary | Soporte (no traza a un requisito) |
+| PA-30 | backend/test/cloudinary.test.js:15 | la firma ignora vacíos y no depende del orden | Soporte (no traza a un requisito) |
+| PA-31 | backend/test/cloudinary.test.js:20 | firma de subida: carpeta, límite de tamaño y sin el secreto | RF-61 |
+| PA-32 | backend/test/cloudinary.test.js:31 | imágenes permitidas: rutas propias y Cloudinary por https | RNF-93, RF-61 |
+| PA-33 | backend/test/mouser.test.js:35 | precios: texto con formato y RawPrice | Soporte (no traza a un requisito) |
+| PA-34 | backend/test/mouser.test.js:43 | precio sugerido: USD x tipo de cambio x margen x IVA, al peso hacia arriba | RNF-101, RF-64 |
+| PA-35 | backend/test/mouser.test.js:52 | pieza sin precio ni stock (como responde Mouser fuera de su región) | Soporte (no traza a un requisito) |
+| PA-36 | backend/test/mouser.test.js:65 | normaliza la parte de Mouser | Soporte (no traza a un requisito) |
+| PA-37 | backend/test/mouser.test.js:81 | solo se importan imágenes de mouser.com por https | RNF-102, RF-64 |
+| PA-38 | backend/test/mouser.test.js:89 | búsqueda: arma la petición correcta, usa caché y reporta errores de Mouser | RF-63 |
+| PA-39 | backend/test/mouser.test.js:114 | tope propio de búsquedas por minuto | RNF-100, RF-63 |
+| PA-40 | backend/test/mapas.test.js:21 | consulta calificada: cada parte por separado y país MEX | RF-20 |
+| PA-41 | backend/test/mapas.test.js:30 | coordenadas: solo dentro de México | RNF-35 |
+| PA-42 | backend/test/mapas.test.js:39 | lee la respuesta de HERE y redondea a 6 decimales | Soporte (no traza a un requisito) |
+| PA-43 | backend/test/mapas.test.js:51 | geocodificar: arma la URL, usa caché y reporta errores de HERE | RF-20 |
+| PA-44 | backend/test/mapas.test.js:72 | al guardar: gana el pin del cliente; si HERE falla, se guarda sin ubicación | RNF-36, RNF-37, RNF-111, RF-20, RF-21 |
+| PA-45 | backend/test/modo-prueba.test.js:34 | orden real desde una cuenta real: se rechaza y se reembolsa | RNF-58.1, RF-30 |
+| PA-46 | backend/test/modo-prueba.test.js:41 | orden de prueba (ORDTST…): se acepta sin consultar la cuenta | Soporte (no traza a un requisito) |
+| PA-47 | backend/test/modo-prueba.test.js:50 | cuenta de usuario de prueba: se acepta aunque el id no sea ORDTST | Soporte (no traza a un requisito) |
+| PA-48 | backend/test/modo-prueba.test.js:57 | el monto que se cobra sale del pedido y la tarjeta de débito se manda como debit_card | RF-30 |
+| PA-49 | backend/test/modo-prueba.test.js:65 | tarjeta sin fondos (402): no se aprueba y trae el motivo tal como lo manda MP | RF-30 |
+| PA-50 | backend/test/estados-pedido.test.js:9 | Pagado -> Enviado -> Entregado, y cancelar solo antes del envío | RNF-103, RNF-104, RF-49, RF-50, RF-51 |
+| PA-51 | backend/test/estados-pedido.test.js:16 | Pendiente -> Pagado a mano solo en modo de prueba | RNF-59, RF-52 |
+| PA-52 | backend/test/api.test.js:30 | registro, OAuth password/refresh/revoke, permisos y pedido | RNF-02, RNF-07, RNF-10, RNF-21, RNF-51, RNF-52, RNF-60, RNF-79, RF-01, RF-02, RF-27, RF-31, RF-42, RF-65 |
+| PA-53 | backend/test/subscripciones.test.js:60 | solo un ADMIN puede suscribirse y recibe los cambios de pedidos en vivo | RNF-84, RF-45 |
+| PA-54 | backend/test/mcp.test.js:34 | MCP por HTTP sin token: catálogo, kits, recursos y prompt | RNF-22, RNF-78, RF-07, RF-18, RF-19 |
+| PA-55 | backend/test/mcp.test.js:74 | MCP por HTTP: token inválido es 401; con token salen los pedidos | RNF-77, RF-43 |
+| PA-56 | backend/test/mcp.test.js:100 | MCP por stdio (Claude Desktop) | RF-18 |
+| PA-57 | backend/test/deseos.test.js:30 | lista de deseos: agregar, sin duplicados, privada y quitar | RNF-44, RNF-45, RF-24, RF-25, RF-26 |
+| PA-58 | backend/test/facturacion.test.js:32 | factura opcional: público en general salvo que el pedido la pida | RNF-53, RNF-68, RF-28, RF-36 |
+| PA-59 | backend/test/facturacion.test.js:77 | el admin mueve el pedido solo en orden: Pagado -> Enviado -> Entregado | RNF-103, RF-49, RF-50 |
+| PA-60 | frontend/test/carrito.test.js:6 | carrito: suma repetidos y respeta el stock | RNF-33, RF-15, RF-16, RF-17 |
+| PA-61 | .github/workflows/ci.yml | Validar (sintaxis, esquema GraphQL, migraciones, XSD): npm run validar. Pasa si: backend/scripts/validar.mjs termina sin error. | RD-20 |
+| PA-62 | .github/workflows/ci.yml | npm audit --omit=dev --audit-level=high (backend). Pasa si: Ninguna dependencia de producción del backend con vulnerabilidad alta o crítica. | RD-20 |
+| PA-63 | .github/workflows/ci.yml | Preparar base de datos: psql -f db.sql y npm run migrar. Pasa si: Las migraciones 001 a 010 se aplican sin error sobre una base que ya las contiene. | RNF-116, RNF-117 |
+| PA-64 | .github/workflows/ci.yml | Levantar el backend: curl -sf http://localhost:4000/. Pasa si: GET / responde 2xx en menos de 30 s. | RNF-112 |
+| PA-65 | .github/workflows/ci.yml | Frontend: npm run build. Pasa si: Astro compila el sitio sin error. | RD-20 |
+
+#### F.2 Demostraciones
+
+| ID | Requisitos | Precondición | Pasos | Resultado esperado |
+|---|---|---|---|---|
+| PM-01 | RF-05; RNF-04, RNF-15, RNF-16, RNF-19, RNF-20 | Cuenta de cliente con correo accesible; RESEND_API_KEY configurada; una sesión abierta en otro navegador. | En /recuperar pedir el enlace; abrirlo; escribir una contraseña nueva de 8 a 128 caracteres; iniciar sesión con ella; volver a abrir el mismo enlace. | Aparece «Listo, ya puedes iniciar sesión con tu contraseña nueva.»; la contraseña nueva funciona y la anterior no; el segundo uso del enlace muestra «El enlace ya no es válido o venció. Pide uno nuevo.»; la sesión del otro navegador queda cerrada. |
+| PM-02 | RF-06 | Catálogo con al menos dos categorías con productos. | Abrir una categoría desde el menú lateral. | La página /categoria/[id] muestra solo productos de esa categoría, y el número de tarjetas es igual al de productos de esa categoría en /admin/productos. |
+| PM-03 | RF-08 | Igual que PM-02. | En /buscar elegir una categoría y pulsar Aplicar. | Todos los resultados pertenecen a la categoría elegida y la URL incluye el filtro. |
+| PM-04 | RF-09; RNF-23 | Al menos un producto con precio anterior y uno sin él. | En /buscar activar «Solo ofertas». | Cada tarjeta muestra un precio anterior tachado mayor que el precio actual; no aparece ningún producto sin precio anterior. |
+| PM-05 | RF-10; RNF-24 | Al menos 3 productos con precios distintos y ventas registradas. | En /buscar cambiar el orden a precio ascendente, precio descendente, nombre, más vendidos y novedad. | Precio ascendente: cada precio es mayor o igual al anterior; descendente: menor o igual; nombre: orden alfabético; más vendidos: piezas vendidas no crecientes; novedad: el producto más reciente primero. |
+| PM-06 | RF-14; RNF-33 | Plantilla de kit con piezas en existencia. | En /kit describir «estación meteorológica», presupuesto 800 y pulsar «Agregar todo al carrito». | /carrito contiene cada pieza del kit con la cantidad indicada y ninguna cantidad supera su stock. |
+| PM-07 | RF-23 | Cliente con datos fiscales capturados. | En Mi cuenta › Datos de facturación pulsar «Borrar», recargar y crear un pedido marcando «¿Necesitas factura?». | Tras recargar, los campos están vacíos; el pedido con factura se rechaza con «Para facturar a tu nombre, primero captura tus datos fiscales.». |
+| PM-08 | RF-29; RNF-54, RNF-55, RNF-57, RNF-58.2 | Credenciales sandbox de PayPal y una cuenta compradora sandbox. | Crear un pedido y pagarlo con PayPal. | El pedido queda Pagado en Mi cuenta; en /admin aparece un cobro aprobado de PAYPAL por el total del pedido. |
+| PM-09 | RF-32; RNF-54 | Pago de Mercado Pago que quedó en revisión (tarjeta de prueba con estado pendiente). | En Mi cuenta pulsar «Verificar pago en revisión». | Si el proveedor lo aprobó, el pedido pasa a Pagado; si no, sigue Pendiente y se muestra el motivo. |
+| PM-10 | RF-33; RNF-61, RNF-62 | Producto con stock conocido S. | Crear un pedido de 1 pieza (stock S−1) y cancelarlo en Mi cuenta. Revisar un pedido Pagado. | El pedido queda Cancelado y el stock vuelve a S; un pedido Pagado no ofrece cancelar. |
+| PM-11 | RF-35; RNF-67 | Cliente con una reseña propia en un producto que tiene otras reseñas. | Eliminar la reseña propia; buscar el botón de eliminar en una reseña ajena. | La reseña desaparece y el promedio se recalcula; las reseñas ajenas no tienen botón de eliminar. |
+| PM-12 | RF-37; RNF-70, RNF-71, RNF-72 | Pedido pagado emitido a público en general; cliente que después captura sus datos fiscales. | En Mi cuenta pulsar «Regenerar con mis datos» y descargar el XML. | El XML tiene el Rfc del cliente, no tiene InformacionGlobal y la prefactura queda con valida = true. |
+| PM-13 | RF-44; RNF-80.1 a RNF-80.7 | Base de prueba con pedidos en los 5 estados y pagos de ambos proveedores, cuyos valores se calculan a mano. | Abrir /admin con una cuenta ADMIN. | Cada uno de los 7 indicadores coincide con el valor calculado a mano con la fórmula de su RNF. |
+| PM-14 | RF-46; RNF-83, RNF-84 | Dos ventanas: una con /admin/productos como ADMIN y otra con un cliente. | Comprar un producto en la ventana del cliente y cronometrar. | El stock del producto cambia en /admin/productos en menos de 2 s, sin recargar. |
+| PM-15 | RF-47 | Pedidos en varios estados. | Filtrar por estado Pagado en /admin/pedidos. | Todas las filas muestran Pagado. |
+| PM-16 | RF-48 | Pedido de un cliente con ubicación guardada. | Desplegar el pedido en /admin/pedidos. | Se ven la dirección completa y un mapa con el pin en las coordenadas guardadas. |
+| PM-17 | RF-53; RNF-105 | Pedido que pasó de Pagado a Enviado. | Desplegar el pedido en /admin/pedidos. | El historial muestra cada estado con fecha y hora, en orden cronológico. |
+| PM-18 | RF-54; RNF-60 | Pedido pagado de otro cliente. | Como ADMIN, pulsar «Imprimir» en /admin/pedidos. | Se abre el PDF de la prefactura con el folio de ese pedido. |
+| PM-19 | RF-55; RNF-85 | Cuenta ADMIN. | Crear una categoría con un nombre válido y otra con un nombre de 101 caracteres. | La primera aparece en la tabla y en el menú lateral; la segunda se rechaza con «Escribe el nombre de la categoría (máx. 100).». |
+| PM-20 | RF-56; RNF-86 | Categoría existente. | Editar su descripción con un texto válido y después con 256 caracteres. | El texto válido se guarda; el de 256 se rechaza con «La descripción es muy larga (máx. 255).». |
+| PM-21 | RF-57; RNF-87 | Una categoría vacía y otra con productos. | Eliminar ambas. | La vacía desaparece; la otra se rechaza con «La categoría tiene productos; muévelos a otra antes de eliminarla.» y sigue en la tabla. |
+| PM-22 | RF-58; RNF-88, RNF-90, RNF-91, RNF-93 | Cuenta ADMIN. | Crear un producto válido; repetir con precio −1, con precio anterior igual al precio y con clave SAT de 7 dígitos. | El válido aparece en el catálogo; los otros se rechazan con «El precio no puede ser negativo.», «El precio anterior tiene que ser mayor que el precio de oferta.» y «La clave SAT del producto son 8 dígitos (p. ej. 01010101).». |
+| PM-23 | RF-59; RNF-88, RNF-90, RNF-91, RNF-93 | Producto existente. | Cambiar su precio y recargar su página; repetir los casos inválidos de PM-22. | La página del producto muestra el precio nuevo; los casos inválidos se rechazan con los mismos mensajes. |
+| PM-24 | RF-60; RNF-46, RNF-94, RNF-95 | Un producto sin pedidos que está en una lista de deseos, y otro con pedidos. | Eliminar ambos. | El primero desaparece del catálogo y de la lista de deseos; el segundo se rechaza con «El producto tiene pedidos; mejor deja su stock en 0.». |
+| PM-25 | RF-66; RNF-106 | Dos cuentas ADMIN o una ADMIN y una CLIENTE. | Cambiar el rol de otro usuario y luego el propio en /admin/usuarios. | El otro usuario muestra el rol nuevo; el cambio propio se rechaza con «No puedes cambiar tu propio rol.». |
+| PM-26 | RF-67; RNF-107.9, RNF-108 | MongoDB configurado. | Fallar un inicio de sesión y filtrar /admin/bitacora por LOGIN_FALLIDO. | Aparece el evento con fecha y correo; no hay filas de otro tipo. |
+| PM-27 | RF-69; RNF-67 | Reseña de otro cliente. | Como ADMIN, eliminarla en la página del producto. | La reseña desaparece para todos los usuarios. |
+| PM-28 | RF-70; RNF-77, RNF-110 | Asistente MCP (Claude Desktop o el cliente del SDK) y tokens de ADMIN y de CLIENTE. | Conectar con el token ADMIN y usar «inventario_bajo»; repetir con el token de CLIENTE. | Con ADMIN, la herramienta devuelve los productos con stock ≤ 5; con CLIENTE, la herramienta no aparece. |
+| PM-29 | RNF-82, RNF-84 | Dos ventanas: /admin/pedidos como ADMIN y un cliente con carrito. | Crear 10 pedidos y cronometrar cada uno desde la confirmación hasta que aparece la fila. | Las 10 filas aparecen en menos de 2 s, sin recargar. |
+| PM-30 | RNF-119 | Servidor activo: hacer antes una solicitud de calentamiento. | Medir 20 cargas consecutivas de /buscar?q=sensor (pestaña Red del navegador o curl -w %{time_total}). | Percentil 95 ≤ 2 s. |
+| PM-31 | RNF-120 | Navegador con herramientas de desarrollo. | Con la vista de dispositivo a 360 px, recorrer las páginas de la sección 2.2.1 y evaluar document.documentElement.scrollWidth. | En cada página el valor es ≤ 360. |
+| PM-32 | RNF-123 | Las dos versiones estables más recientes de Chrome, Firefox, Edge y Safari. | En cada navegador: buscar, agregar al carrito, iniciar sesión y crear un pedido en modo de prueba. | El pedido se crea en los 4 navegadores y la consola no muestra errores. |
+| PM-33 | RNF-114 | Ninguna. | curl -I http://voltrix-backend-akbc.onrender.com/ y curl -I http://voltrixf.netlify.app/; revisar las cadenas de conexión de backend/.env.example. | Ambos responden 301 hacia https://; DATABASE_URL usa sslmode=verify-full y MONGODB_URI usa mongodb+srv. |
+| PM-34 | RNF-115 | Ninguna. | Enviar OPTIONS /graphql con Origin: https://evil.example y luego con Origin: https://voltrixf.netlify.app. | Con el origen ajeno no hay encabezado Access-Control-Allow-Origin; con la tienda, el encabezado es igual a su origen. |
+| PM-35 | RNF-112 | Ninguna. | GET https://voltrix-backend-akbc.onrender.com/ | HTTP 200 con {"servicio":"voltrix-backend","ok":true,"version":"<commit>"}. |
+| PM-36 | RF-43; RNF-77 | Asistente MCP y token de un CLIENTE con pedidos. | Usar «mis_pedidos» y «estado_pedido». | Solo aparecen pedidos de ese cliente y ninguna respuesta incluye usuario_id. Alternativa automatizada: configurar MCP_EMAIL y MCP_PASSWORD en CI para que PA-55 no se omita. |
+| PM-37 | RF-65 | Cuenta ADMIN y clientes con compras. | Abrir /admin/usuarios. | Cada usuario aparece con su número de compras. |
+| PM-38 | Sección 2.5 (supuesto de bases de datos) | Acceso a los paneles de Neon y MongoDB Atlas. | Anotar el almacenamiento usado y el límite del plan de cada uno. | El almacenamiento usado es menor que el límite del plan; se registran los valores y la fecha. |

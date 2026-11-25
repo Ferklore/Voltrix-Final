@@ -1,0 +1,184 @@
+# Matriz de trazabilidad — Voltrix
+
+Versión 2.0 · 25 de noviembre de 2026 · código auditado: commit 2b8df49 (ver EVIDENCIA_COMMIT.md).
+
+Esta matriz recorre cada requerimiento no funcional del SRS (sección 3.1) hasta el código que lo implementa y la evidencia que lo verifica: **requisito → RF → módulo → archivo:línea → verificación → evidencia → estado**. La matriz por requerimiento funcional está en la sección 3.2 del SRS; los identificadores PA y PM se definen en el Apéndice F del SRS y sus resultados se registran en VERIFICACION.md.
+
+Regla aplicada: una prueba se cita solo si una de sus aserciones comprueba la condición del requerimiento. Cuando el archivo de prueba existe pero no la comprueba, el requerimiento se verifica por inspección o por demostración, y la columna Evidencia lo dice.
+
+## Estados
+
+| Estado | Significado | RNF |
+|---|---|---|
+| Implementado y verificado (prueba automatizada) | Una prueba del CI tiene una aserción que comprueba la condición y pasó en la corrida 44674351700. | 53 |
+| Implementado y verificado (inspección) | Se revisó la línea de código citada y cumple la condición. | 86 |
+| Implementado y verificado (demostración ejecutada) | Se ejecutó la demostración y el resultado coincidió con el esperado. | 2 |
+| Implementado, verificación pendiente | El código existe, pero la demostración aún no se ejecuta. | 4 |
+| Parcial | La implementación o la verificación cubren solo una parte; la columna Evidencia dice cuál. | 4 |
+| Retirado | El número se conserva y no se reutiliza. | 3 |
+
+Total: 152 identificadores, 149 vigentes y 3 retirados.
+
+## Requerimientos no funcionales
+
+| RNF | RF | Módulo | Implementación (archivo:línea) | Verificación | Evidencia | Estado |
+|---|---|---|---|---|---|---|
+| RNF-01 | RF-01 | Registro | backend/src/rutas/registro.js:18 | Inspección | Un correo sin @, con espacios, sin punto tras la @ o de más de 150 caracteres recibe HTTP 400. | Implementado y verificado (inspección) |
+| RNF-02 | RF-01 | Registro | backend/src/rutas/registro.js:42; backend/db.sql:35 | PA-52 | api.test.js:46: registrar el mismo correo en mayúsculas devuelve HTTP 409. | Implementado y verificado (prueba automatizada) |
+| RNF-03 | RF-01 | Registro | backend/src/rutas/registro.js:17 | Inspección | Un nombre vacío o de más de 150 caracteres recibe HTTP 400 «Escribe tu nombre.». | Implementado y verificado (inspección) |
+| RNF-04 | RF-01, RF-05 | Autenticación | backend/src/auth.js:35-36 | Inspección | Una contraseña de 7 o de 129 caracteres se rechaza con un mensaje; una de 8 a 128 se acepta. | Implementado y verificado (inspección) |
+| RNF-05 | RF-01 | Autenticación | backend/src/auth.js:15-19 | Inspección | El valor guardado tiene la forma scrypt$<sal>$<hash>, con una sal de 16 bytes generada en cada llamada (randomBytes). | Implementado y verificado (inspección) |
+| RNF-06.1 | RF-01, RF-20 | Dirección | backend/src/direccion.js:24 | Inspección | Calle vacía o de más de 150 caracteres: «Escribe la calle y el número.». | Implementado y verificado (inspección) |
+| RNF-06.2 | RF-01, RF-20 | Dirección | backend/src/direccion.js:25 | Inspección | Colonia vacía o de más de 100 caracteres: «Escribe la colonia.». | Implementado y verificado (inspección) |
+| RNF-06.3 | RF-01, RF-20 | Dirección | backend/src/direccion.js:26 | Inspección | Ciudad vacía o de más de 100 caracteres: «Escribe la ciudad o municipio.». | Implementado y verificado (inspección) |
+| RNF-06.4 | RF-01, RF-20 | Dirección | backend/src/direccion.js:5-10, 27 | Inspección | ESTADOS_MX tiene 32 entradas; un estado fuera de la lista: «Elige un estado de la lista.». | Implementado y verificado (inspección) |
+| RNF-06.5 | RF-01, RF-20 | Dirección | backend/src/direccion.js:28 | Inspección | Un código postal que no cumpla ^\d{5}$: «El código postal debe tener 5 dígitos.». | Implementado y verificado (inspección) |
+| RNF-07 | RF-02 | Autenticación | backend/src/auth.js:10-11, 51-62 | PA-52 | api.test.js:96-98: tras 5 intentos fallidos, la contraseña correcta devuelve invalid_grant. | Implementado y verificado (prueba automatizada) |
+| RNF-08 | RF-02 | Autenticación | backend/src/auth.js:8, 84-87 | Inspección | ACCESS_TTL = 3600 s se guarda como fecha de expiración del token de acceso. | Implementado y verificado (inspección) |
+| RNF-09 | RF-02 | Autenticación | backend/src/auth.js:9, 84-87 | Inspección | REFRESH_TTL = 2 592 000 s (30 días) se guarda como fecha de expiración del token de renovación. | Implementado y verificado (inspección) |
+| RNF-10 | RF-02 | Autenticación | backend/src/auth.js:99-112 | PA-52 | api.test.js:85: reutilizar un token de renovación ya canjeado devuelve invalid_grant. | Implementado y verificado (prueba automatizada) |
+| RNF-11.1 | RF-02 | Autenticación | backend/src/auth.js:77, 87; backend/db.sql (oauth_token.hash) | Inspección | Solo se inserta sha256(token); el token en claro no se escribe en la base. | Implementado y verificado (inspección) |
+| RNF-11.2 | RF-04 | Recuperación de contraseña | backend/src/rutas/recuperar.js:44-45 | Inspección | Solo se inserta sha256(token) en password_reset. | Implementado y verificado (inspección) |
+| RNF-12.1 | RF-03 | Login con Google | backend/src/google.js:15, 26 | PA-26 | google.test.js:38-46: un token firmado con una llave ajena se rechaza (ErrorGoogle). | Implementado y verificado (prueba automatizada) |
+| RNF-12.2 | RF-03 | Login con Google | backend/src/google.js:26 | PA-26 | google.test.js:38-46: un token con otro client id se rechaza. | Implementado y verificado (prueba automatizada) |
+| RNF-12.3 | RF-03 | Login con Google | backend/src/google.js:13, 26 | PA-26 | google.test.js:38-46: un token con otro emisor se rechaza. | Implementado y verificado (prueba automatizada) |
+| RNF-12.4 | RF-03 | Login con Google | backend/src/google.js:26 | PA-26 | google.test.js:38-46: un token vencido se rechaza. | Implementado y verificado (prueba automatizada) |
+| RNF-13 | RF-03 | Login con Google | backend/src/google.js:31 | PA-27 | google.test.js:50: email_verified=false se rechaza con «no está verificado». | Implementado y verificado (prueba automatizada) |
+| RNF-14 | RF-03 | Login con Google | backend/src/google.js:48-58 | Inspección | Si no hay cuenta con ese google_sub, se actualiza la que tenga el mismo correo (UPDATE … WHERE email = $2 AND google_sub IS NULL) antes de crear una nueva. | Implementado y verificado (inspección) |
+| RNF-15 | RF-05 | Recuperación de contraseña | backend/src/rutas/recuperar.js:21, 44 | Inspección | El enlace se guarda con expira = now() + 30 minutos; después de esa hora la consulta de canje no lo encuentra. | Implementado y verificado (inspección) |
+| RNF-16 | RF-05 | Recuperación de contraseña | backend/src/rutas/recuperar.js:68 | Inspección | El canje hace DELETE … RETURNING: un segundo uso no encuentra el enlace y responde «El enlace ya no es válido o venció.». | Implementado y verificado (inspección) |
+| RNF-17 | RF-04 | Recuperación de contraseña | backend/src/rutas/recuperar.js:24, 52 | Inspección | La respuesta es siempre MENSAJE («Si hay una cuenta con ese correo…»), exista o no la cuenta. | Implementado y verificado (inspección) |
+| RNF-18 | RF-04 | Recuperación de contraseña | backend/src/rutas/recuperar.js:23, 36 | Inspección | Si hay un enlace creado hace menos de 60 s (ESPERA_SEG) para esa cuenta, no se envía otro correo. | Implementado y verificado (inspección) |
+| RNF-19 | RF-05 | Recuperación de contraseña | backend/src/rutas/recuperar.js:80 | Inspección | Al restablecer se ejecuta DELETE FROM oauth_token WHERE usuario_id = $1. | Implementado y verificado (inspección) |
+| RNF-20 | RF-05 | Recuperación de contraseña | backend/src/rutas/recuperar.js:76 | Inspección | Al restablecer se ponen intentos_fallidos = 0 y bloqueado_hasta = NULL. | Implementado y verificado (inspección) |
+| RNF-21 | RF-42 | OAuth 2.0 | backend/src/auth.js:116-120; rutas/oauth.js:73-75 | PA-52 | api.test.js:88-94: después de /oauth/revoke, el token de acceso ya no identifica al usuario. | Implementado y verificado (prueba automatizada) |
+| RNF-22 | RF-07 | Catálogo | backend/src/catalogo.js:26-30 | Inspección, PA-54 | Se toman como máximo 8 palabras y cada una agrega una condición ILIKE sobre nombre, especificaciones o categoría; mcp.test.js:45 obtiene resultados por la misma función. | Implementado y verificado (inspección) |
+| RNF-23 | RF-09 | Catálogo | backend/src/catalogo.js:36 | Inspección | El filtro de ofertas es p.precio_anterior > p.precio. | Implementado y verificado (inspección) |
+| RNF-24 | RF-10 | Catálogo | backend/src/catalogo.js:5, 15, 43 | Inspección | MAS_VENDIDOS ordena por la suma de cantidades de pedidos con status Pagado, Enviado o Entregado. | Implementado y verificado (inspección) |
+| RNF-25 | RF-11, RF-62 | Fichas técnicas | backend/src/mongo/fichas.js:33 | PA-15 | mongo.test.js:35: un datasheet «javascript:…» se rechaza con /http/. | Implementado y verificado (prueba automatizada) |
+| RNF-26 | RF-12 | Reseñas | backend/src/mongo/resenas.js:11-12 | PA-17 | mongo.test.js:48: «Fernando Rodríguez Sánchez» se publica como «Fernando R.». | Implementado y verificado (prueba automatizada) |
+| RNF-27 | RF-13 | API GraphQL | backend/src/graphql/resolvers.js:100 | Inspección | Una descripción de 501 caracteres recibe KIT_SIN_DATOS; una de 500 se acepta. | Implementado y verificado (inspección) |
+| RNF-28 | RF-13 | API GraphQL | backend/src/graphql/resolvers.js:101 | Inspección | Un presupuesto 0 o negativo recibe KIT_SIN_DATOS. | Implementado y verificado (inspección) |
+| RNF-29 | RF-13, RF-19 | Kits | backend/src/kits/recomendador.js:49 | PA-24 | kits.test.js:61-63: una pieza sin existencias suficientes para la cantidad del kit no se recomienda. | Implementado y verificado (prueba automatizada) |
+| RNF-30 | RF-13 | Kits | backend/src/kits/recomendador.js:67-71 | PA-23 | kits.test.js:54: con 440 > 400 se retira primero la pieza opcional. El orden de más cara a más barata se verifica por inspección (línea 71). | Implementado y verificado (prueba automatizada) |
+| RNF-31 | RF-13 | Kits | backend/src/kits/recomendador.js:80-84 | PA-23 | kits.test.js:56: sin opcionales y aún sobre el presupuesto, se cambia la pieza que más ahorra. | Implementado y verificado (prueba automatizada) |
+| RNF-32 | RF-15, RF-16, RF-27 | API GraphQL | backend/src/graphql/resolvers.js:379; backend/db.sql:55 | Inspección | Una cantidad 0, negativa o decimal recibe CANTIDAD_INVALIDA; la base además exige cantidad > 0. | Implementado y verificado (inspección) |
+| RNF-33 | RF-14, RF-15, RF-16 | Frontend | frontend/src/lib/carrito.js:12 | PA-60 | carrito.test.js:11-13: la cantidad se limita al stock del producto. | Implementado y verificado (prueba automatizada) |
+| RNF-34 | RF-15, RF-17 | Frontend | frontend/src/lib/carrito.js:43, 62 | Inspección | El carrito se lee y se escribe en localStorage; sobrevive a recargar la página. | Implementado y verificado (inspección) |
+| RNF-35 | RF-20, RF-21 | Mapas | backend/src/mapas.js:15-20 | PA-41 | mapas.test.js:31-36: Guadalajara, Tijuana y Cancún se aceptan; Nueva York y (0, 0) se rechazan. | Implementado y verificado (prueba automatizada) |
+| RNF-36 | RF-20 | Mapas | backend/src/mapas.js:92-94 | PA-44 | mapas.test.js:81: si HERE falla, la ubicación es null y la dirección se guarda. | Implementado y verificado (prueba automatizada) |
+| RNF-37 | RF-21 | Mapas | backend/src/mapas.js:90-92 | PA-44 | mapas.test.js:78-79: con pin del cliente se usan sus coordenadas y no se consulta HERE. | Implementado y verificado (prueba automatizada) |
+| RNF-38 | RF-22 | Prefactura CFDI | backend/src/cfdi/catalogos.js:51; cfdi/validar.js:107 | PA-06 | cfdi.test.js:82: el RFC «ABC» se rechaza; cfdi.test.js:80 acepta GODE561231GR8. | Implementado y verificado (prueba automatizada) |
+| RNF-39 | RF-22 | Prefactura CFDI | backend/src/cfdi/validar.js:108 | PA-06 | cfdi.test.js:83: XAXX010101000 se rechaza con «genérico». XEXX010101000 se rechaza en la misma línea de código, sin aserción propia. | Implementado y verificado (prueba automatizada) |
+| RNF-40 | RF-22 | Prefactura CFDI | backend/src/cfdi/validar.js | PA-06 | cfdi.test.js:85: el régimen 601 con RFC de persona física se rechaza con «no aplica». | Implementado y verificado (prueba automatizada) |
+| RNF-41 | RF-22 | Prefactura CFDI | backend/src/cfdi/validar.js | PA-06 | cfdi.test.js:86: el uso G03 con el régimen 605 se rechaza con «no se permite». | Implementado y verificado (prueba automatizada) |
+| RNF-42 | RF-22 | Prefactura CFDI | backend/src/cfdi/validar.js:112 | PA-06 | cfdi.test.js:84: el código postal 4505 se rechaza con «5 dígitos». | Implementado y verificado (prueba automatizada) |
+| RNF-43 | RF-22 | Prefactura CFDI | backend/src/cfdi/validar.js:109 | Inspección | Una razón social vacía, de más de 254 caracteres o con «\|» se rechaza. | Implementado y verificado (inspección) |
+| RNF-44 | RF-24 | API GraphQL | backend/src/graphql/resolvers.js:121; backend/db.sql:163-166 | PA-57 | deseos.test.js:38-41: agregar dos veces deja el producto una sola vez (ON CONFLICT DO NOTHING). | Implementado y verificado (prueba automatizada) |
+| RNF-45 | RF-26 | API GraphQL | backend/src/graphql/resolvers.js:488-493 | PA-57 | deseos.test.js:44: otro cliente consulta su lista y recibe []. | Implementado y verificado (prueba automatizada) |
+| RNF-46 | RF-26, RF-60 | Base de datos | backend/db.sql:166 | Inspección | lista_deseos.producto_id tiene ON DELETE CASCADE. | Implementado y verificado (inspección) |
+| RNF-47 | RF-26 | API GraphQL | backend/src/graphql/resolvers.js:493 | Inspección | La lista se obtiene con JOIN a producto en cada consulta, así que precio y stock son los vigentes. | Implementado y verificado (inspección) |
+| RNF-48 | RF-27 | API GraphQL | backend/src/graphql/resolvers.js:369 | Inspección | Un pedido sin renglones recibe CARRITO_VACIO. | Implementado y verificado (inspección) |
+| RNF-49 | RF-27 | API GraphQL | backend/src/graphql/resolvers.js:396 | Inspección | Un producto inexistente recibe PRODUCTO_NO_EXISTE. | Implementado y verificado (inspección) |
+| RNF-50 | RF-27 | API GraphQL | backend/src/graphql/resolvers.js:371 | Inspección | Un cliente sin dirección recibe SIN_DIRECCION. | Implementado y verificado (inspección) |
+| RNF-51 | RF-27 | API GraphQL | backend/src/graphql/resolvers.js:386-431 | PA-52 | api.test.js:69-70: con stock insuficiente se recibe STOCK_INSUFICIENTE y el stock no cambia; api.test.js:74: un pedido válido descuenta 2 piezas. | Implementado y verificado (prueba automatizada) |
+| RNF-52 | RF-27 | API GraphQL | backend/src/graphql/resolvers.js:367-424 | PA-52 | api.test.js:73: el total (90) lo calcula el servidor; la mutación crearPedido no recibe importes. | Implementado y verificado (prueba automatizada) |
+| RNF-53 | RF-28, RF-36 | API GraphQL | backend/src/graphql/resolvers.js:563 | PA-58 | facturacion.test.js:48: pedir factura sin datos fiscales devuelve SIN_DATOS_FISCALES. | Implementado y verificado (prueba automatizada) |
+| RNF-54 | RF-29, RF-30, RF-32 | Pagos | backend/src/pagos/index.js:118-129 | Inspección | El pedido pasa a Pagado solo si pedidoId, moneda y monto (±0.01) del proveedor coinciden; si no, el resultado es RECHAZADO. PA-45 a PA-49 prueban la lectura de la respuesta de Mercado Pago, no esta comparación. | Implementado y verificado (inspección) |
+| RNF-55 | RF-29, RF-30 | Pagos | backend/src/pagos/index.js:154-180; pagos/paypal.js:47; pagos/mercadopago.js:29; backend/db.sql:78 | Inspección | Cada cobro envía una llave de idempotencia y la tabla pago tiene UNIQUE (proveedor, id_transaccion). | Implementado y verificado (inspección) |
+| RNF-56 | RF-30 | API GraphQL | backend/src/graphql/schema.js:320-321 | Inspección | TarjetaInput recibe solo el token del Card Payment Brick; no existe ningún campo para el número de tarjeta. | Implementado y verificado (inspección) |
+| RNF-57 | RF-29, RF-30 | Pagos | backend/src/pagos/modo.js:4 | Inspección | MODO_PRUEBA es verdadero salvo que PAGOS_MODO sea exactamente «produccion». | Implementado y verificado (inspección) |
+| RNF-58.1 | RF-30 | Pagos | backend/src/pagos/mercadopago.js:50-59 | PA-45 | modo-prueba.test.js:37-38: una orden real se marca como no aprobada y se llama a POST /v1/orders/{id}/refund. | Implementado y verificado (prueba automatizada) |
+| RNF-58.2 | RF-29 | Pagos | backend/src/pagos/paypal.js:17 | Inspección | En modo de prueba PayPal solo queda habilitado si PAYPAL_API es el sandbox. | Implementado y verificado (inspección) |
+| RNF-59 | RF-52 | Pedidos | backend/src/pedidos.js:19-21 | PA-51 | estados-pedido.test.js:17-18: Pendiente → Pagado solo aparece con modo de prueba. | Implementado y verificado (prueba automatizada) |
+| RNF-60 | RF-31, RF-38, RF-39, RF-54 | Prefacturas | backend/src/graphql/resolvers.js:60, 213; rutas/prefacturas.js:23 | PA-52 | api.test.js:76-79: otro cliente no ve el pedido y el ADMIN sí. La descarga de la prefactura aplica la misma regla (prefacturas.js:23). | Implementado y verificado (prueba automatizada) |
+| RNF-61 | RF-33 | API GraphQL | backend/src/graphql/resolvers.js:354 | Inspección | Cancelar un pedido que no está Pendiente devuelve PEDIDO_NO_PENDIENTE. | Implementado y verificado (inspección) |
+| RNF-62 | RF-33, RF-51 | Pedidos | backend/src/pedidos.js:38-45 | Inspección | Al cancelar, en la misma transacción, stock = stock + cantidad de cada renglón. | Implementado y verificado (inspección) |
+| RNF-63 | RF-34 | Reseñas | backend/src/mongo/resenas.js:18 | PA-16 | mongo.test.js:42: calificaciones fuera de 1-5 o no enteras se rechazan. | Implementado y verificado (prueba automatizada) |
+| RNF-64 | RF-34 | Reseñas | backend/src/mongo/resenas.js:22 | PA-16 | mongo.test.js:44: un comentario de 1001 caracteres se rechaza con «muy largo». | Implementado y verificado (prueba automatizada) |
+| RNF-65 | RF-34 | Reseñas | backend/src/mongo/conexion.js:25; mongo/resenas.js:60-68 | Inspección | Índice único (productoId, usuarioId) y escritura con upsert: una segunda reseña reemplaza la anterior. | Implementado y verificado (inspección) |
+| RNF-66 | RF-34 | Reseñas | backend/src/mongo/resenas.js:29 | Inspección | compraVerificada se calcula con un pedido del cliente con ese producto y status Pagado, Enviado o Entregado. | Implementado y verificado (inspección) |
+| RNF-67 | RF-35, RF-69 | Reseñas | backend/src/mongo/resenas.js:72-76 | Inspección | El filtro de borrado incluye usuarioId salvo que el usuario sea ADMIN. | Implementado y verificado (inspección) |
+| RNF-68 | RF-38 | Prefactura CFDI | backend/src/cfdi/generar.js:116 | PA-58, PA-01 | facturacion.test.js:56: sin factura, el receptor es XAXX010101000; cfdi.test.js:25: Nombre="PUBLICO EN GENERAL". | Implementado y verificado (prueba automatizada) |
+| RNF-69 | RF-38 | Prefactura CFDI | backend/src/cfdi/generar.js | PA-01, PA-02 | cfdi.test.js:21-27: XML con Version 4.0 e InformacionGlobal; cfdi.test.js:34: sin InformacionGlobal cuando hay RFC. | Implementado y verificado (prueba automatizada) |
+| RNF-70 | RF-36, RF-37, RF-38 | Prefactura CFDI | backend/src/cfdi/validar.js | PA-01, PA-04 | cfdi.test.js:20: un XML correcto no tiene errores; cfdi.test.js:60-64: el XSD rechaza Moneda, ClaveUnidad, Rfc, Emisor y LugarExpedicion inválidos. | Implementado y verificado (prueba automatizada) |
+| RNF-71 | RF-36, RF-37, RF-38 | Prefactura CFDI | backend/src/cfdi/validar.js:33-61 | PA-04, PA-05 | cfdi.test.js:60-61 y 74-75: claves fuera de catálogo y combinaciones régimen-uso inválidas se reportan. | Implementado y verificado (prueba automatizada) |
+| RNF-72 | RF-37 | Base de datos | backend/migraciones/003-cfdi.sql:29-30 | Inspección | La tabla prefactura tiene valida boolean NOT NULL y errores jsonb. | Implementado y verificado (inspección) |
+| RNF-73 | RF-38, RF-39 | Prefactura CFDI | backend/src/cfdi/generar.js:76-79 | PA-03 | cfdi.test.js:39-52: para todo precio y cantidad probados, las reglas no encuentran diferencia entre total y monto cobrado. | Implementado y verificado (prueba automatizada) |
+| RNF-74 | RF-38, RF-39 | Prefactura CFDI | backend/src/cfdi/index.js:78-79; cloudinary.js:54 | Inspección | El XML y el PDF se suben con tipo «authenticated» (no se abren con solo la URL) y la referencia queda en prefactura.respaldo. Requiere CLOUDINARY_URL. | Implementado y verificado (inspección) |
+| RNF-75 | RF-40, RF-41, RF-68 | Pagos | backend/src/graphql/resolvers.js:424-427; pagos/index.js:185-190 | Inspección | Los avisos por correo se llaman después de COMMIT y sin await que pueda revertir la transacción. correo.test.js no prueba este orden. | Implementado y verificado (inspección) |
+| RNF-76 | RF-41 | Correo | backend/src/correo/avisos.js:41-57 | Inspección, PA-10 | El correo de pago adjunta prefactura-<serie><folio>.pdf y .xml; correo.test.js:28 solo comprueba que el texto menciona la prefactura. | Implementado y verificado (inspección) |
+| RNF-77 | RF-43, RF-70 | MCP | backend/src/rutas/mcp.js:18-22; mcp/servidor.js:152-191 | PA-55, PM-36 | mcp.test.js:80: un token inválido recibe 401. La parte con token válido (mcp.test.js:83-93) se omite en CI por falta de MCP_EMAIL y MCP_PASSWORD. | Parcial |
+| RNF-78 | RF-18, RF-19 | MCP | backend/src/mcp/servidor.js:77-116 | PA-54 | mcp.test.js:39: sin token solo aparecen las 5 herramientas públicas. | Implementado y verificado (prueba automatizada) |
+| RNF-79 | RF-44, RF-47, RF-48, RF-49, RF-50, RF-51, RF-52, RF-54, RF-55, RF-56, RF-57, RF-58, RF-59, RF-60, RF-61, RF-62, RF-63, RF-64, RF-65, RF-66, RF-67, RF-69 | API GraphQL | backend/src/graphql/resolvers.js:33 | PA-52 | api.test.js:61: un CLIENTE que consulta usuarios recibe FORBIDDEN. | Implementado y verificado (prueba automatizada) |
+| RNF-80.1 | RF-44 | API GraphQL | backend/src/graphql/resolvers.js:612, 635 | Inspección, PM-13 | ventas = suma de total con status Pagado, Enviado o Entregado, sin límite de fechas. | Implementado y verificado (inspección) |
+| RNF-80.2 | RF-44 | API GraphQL | backend/src/graphql/resolvers.js:613, 637 | Inspección, PM-13 | ticketPromedio = round(ventas / pedidos_vendidos × 100) / 100, o 0. | Implementado y verificado (inspección) |
+| RNF-80.3 | RF-44 | API GraphQL | backend/src/graphql/resolvers.js:618-621 | Inspección, PM-13 | Una fila por cada valor de status_pedido (5), con count y suma de total, incluidos Pendiente y Cancelado. | Implementado y verificado (inspección) |
+| RNF-80.4 | RF-44 | API GraphQL | backend/src/graphql/resolvers.js:111, 623-626; graphql/schema.js:417 | Inspección, PM-13 | generate_series de los últimos dias (1-90, 14 por omisión) con LEFT JOIN: los días sin ventas valen 0. | Implementado y verificado (inspección) |
+| RNF-80.5 | RF-44 | API GraphQL | backend/src/graphql/resolvers.js:631-632 | Inspección, PM-13 | Agrupa la tabla pago con estado APROBADO por proveedor. | Implementado y verificado (inspección) |
+| RNF-80.6 | RF-44 | API GraphQL | backend/src/graphql/resolvers.js:627-629 | Inspección, PM-13 | ORDER BY unidades DESC, monto DESC LIMIT 5 sobre pedidos vendidos. | Implementado y verificado (inspección) |
+| RNF-80.7 | RF-44 | API GraphQL | backend/src/graphql/resolvers.js:630; graphql/schema.js:417 | Inspección, PM-13 | stock <= stockMinimo (5 por omisión). | Implementado y verificado (inspección) |
+| RNF-81 | — | — | — | — | Retirado en v2.0: su condición (solo pedidos Pagado, Enviado o Entregado) se incorporó a la definición de cada indicador en RNF-80.1 a RNF-80.7. No aplicaba a RNF-80.3, RNF-80.5 ni RNF-80.7, que el código calcula con otros datos. | Retirado |
+| RNF-82 | RF-45 | Tiempo real | backend/src/graphql/resolvers.js:424-426; eventos.js | PM-29 | La fila nueva aparece en /admin/pedidos en menos de 2 s en 10 de 10 repeticiones. PA-53 solo comprueba que el evento llega antes de 10 s (subscripciones.test.js:48), así que no verifica el umbral. | Implementado, verificación pendiente |
+| RNF-83 | RF-46 | Pedidos | backend/src/graphql/resolvers.js:426; pedidos.js:48 | PM-14 | El stock cambia en /admin/productos en menos de 2 s, sin recargar. | Implementado, verificación pendiente |
+| RNF-84 | RF-45, RF-46 | API GraphQL | backend/src/graphql/resolvers.js:440-449 | PA-53 | subscripciones.test.js:74: un CLIENTE que se suscribe recibe FORBIDDEN. | Implementado y verificado (prueba automatizada) |
+| RNF-85 | RF-55, RF-56 | API GraphQL | backend/src/graphql/resolvers.js:602 | Inspección | Un nombre vacío o de más de 100 caracteres recibe CATEGORIA_INVALIDA. | Implementado y verificado (inspección) |
+| RNF-86 | RF-55, RF-56 | API GraphQL | backend/src/graphql/resolvers.js:603 | Inspección | Una descripción de más de 255 caracteres recibe CATEGORIA_INVALIDA. | Implementado y verificado (inspección) |
+| RNF-87 | RF-57 | API GraphQL | backend/src/graphql/resolvers.js:295-296; backend/db.sql:28 | Inspección | La llave foránea producto.categoria_id impide el borrado (23503) y se responde CATEGORIA_CON_PRODUCTOS. | Implementado y verificado (inspección) |
+| RNF-88 | RF-58, RF-59 | API GraphQL | backend/src/graphql/resolvers.js:585; backend/db.sql:24 | Inspección | Un precio negativo recibe PRODUCTO_INVALIDO; la base además tiene CHECK (precio >= 0). | Implementado y verificado (inspección) |
+| RNF-89 | RF-58, RF-59 | Base de datos | backend/db.sql:27 | Inspección | CHECK (stock >= 0). | Implementado y verificado (inspección) |
+| RNF-90 | RF-58, RF-59 | API GraphQL | backend/src/graphql/resolvers.js:587; backend/db.sql:139-140 | Inspección | Un precio anterior menor o igual al precio recibe PRODUCTO_INVALIDO; la base tiene CHECK (precio_anterior > precio). | Implementado y verificado (inspección) |
+| RNF-91 | RF-58, RF-59 | API GraphQL | backend/src/graphql/resolvers.js:593-594 | Inspección | Una clave que no cumpla ^\d{8}$ recibe PRODUCTO_INVALIDO. | Implementado y verificado (inspección) |
+| RNF-92 | RF-61 | Archivos | frontend/src/lib/imagen.js:16; backend/src/cloudinary.js:93 | Inspección | Subida desde el panel: el límite de 5 MB solo se revisa en el navegador (imagen.js:16) y la firma de subida (cloudinary.js:37-51) no limita bytes. Importación desde Mouser: el servidor rechaza más de 5 MB (cloudinary.js:93). PA-31 no comprueba el tamaño. | Parcial |
+| RNF-93 | RF-58, RF-59, RF-61 | Archivos | backend/src/graphql/resolvers.js:590; cloudinary.js:113-118 | PA-32 | cloudinary.test.js:31-36: rutas /productos/… y https://res.cloudinary.com/… se aceptan; otras direcciones se rechazan. | Implementado y verificado (prueba automatizada) |
+| RNF-94 | RF-60 | API GraphQL | backend/db.sql:54; backend/src/graphql/resolvers.js:270-271 | Inspección | La llave foránea detalle_pedido.producto_id impide el borrado y se responde PRODUCTO_CON_PEDIDOS. | Implementado y verificado (inspección) |
+| RNF-95 | RF-60 | API GraphQL | backend/src/graphql/resolvers.js:265-266 | Inspección | Al eliminar un producto se llama a borrarFicha y a borrarResenasDeProducto. | Implementado y verificado (inspección) |
+| RNF-96 | RF-62 | Fichas técnicas | backend/src/mongo/fichas.js:7, 16 | PA-15 | mongo.test.js:33: 41 especificaciones se rechazan con «Máximo 40». | Implementado y verificado (prueba automatizada) |
+| RNF-97 | RF-62 | Fichas técnicas | backend/src/mongo/fichas.js:19 | PA-15 | mongo.test.js:30: una fila sin valor se rechaza con «nombre y valor». | Implementado y verificado (prueba automatizada) |
+| RNF-98 | RF-62 | Fichas técnicas | backend/src/mongo/fichas.js:22-23 | PA-15 | mongo.test.js:31: «RAM» y «ram» en la misma ficha se rechazan. | Implementado y verificado (prueba automatizada) |
+| RNF-99 | — | — | — | — | Retirado en v2.0: la caché de 10 minutos es una técnica de diseño; pasa a la restricción RD-19, que contribuye a RNF-100. | Retirado |
+| RNF-100 | RF-63 | Mouser | backend/src/mouser.js:20, 95 | PA-39 | mouser.test.js:114-120: la búsqueda que pasa el tope recibe un error que pide esperar un minuto. | Implementado y verificado (prueba automatizada) |
+| RNF-101 | RF-64 | Mouser | backend/src/mouser.js:35-39 | PA-34 | mouser.test.js:45: con tipo de cambio 20 y margen 1.5, 0.80 USD × 20 × 1.5 × 1.16 = 27.84 se redondea a 28 MXN. | Implementado y verificado (prueba automatizada) |
+| RNF-102 | RF-64 | Mouser | backend/src/mouser.js:141 | PA-37 | mouser.test.js:82-86: www y eu.mouser.com por https se aceptan; http, dominios que imitan a mouser.com y textos que no son URL se rechazan. | Implementado y verificado (prueba automatizada) |
+| RNF-103 | RF-49, RF-50, RF-51 | Pedidos | backend/src/pedidos.js:11-22; graphql/resolvers.js:330-331 | PA-50, PA-59 | estados-pedido.test.js:10-13: Entregado y Cancelado no tienen estados siguientes; facturacion.test.js:90: una transición no permitida recibe TRANSICION_INVALIDA. | Implementado y verificado (prueba automatizada) |
+| RNF-104 | RF-51 | API GraphQL | backend/src/graphql/resolvers.js:327-328 | PA-50 | estados-pedido.test.js:13: Cancelado no tiene estados siguientes; el resolver responde PEDIDO_CANCELADO. | Implementado y verificado (prueba automatizada) |
+| RNF-105 | RF-49, RF-50, RF-53 | Pedidos | backend/src/mongo/pedidos.js:43-49 | Inspección, PM-17 | Cada cambio hace $push de {status, fecha} en el historial (si MongoDB está disponible). | Implementado y verificado (inspección) |
+| RNF-106 | RF-66 | API GraphQL | backend/src/graphql/resolvers.js:341-344 | Inspección | Cambiar el rol propio recibe ROL_PROPIO. | Implementado y verificado (inspección) |
+| RNF-107.1 | RF-67 | Tiempo real | backend/src/eventos.js:25 | Inspección | registrar('PEDIDO_CREADO', …) | Implementado y verificado (inspección) |
+| RNF-107.2 | RF-67 | Tiempo real | backend/src/eventos.js:27 | Inspección | registrar('PEDIDO_ESTADO', …) | Implementado y verificado (inspección) |
+| RNF-107.3 | RF-67 | Pagos | backend/src/pagos/index.js:191 | Inspección | registrar('PAGO_APROBADO', …) | Implementado y verificado (inspección) |
+| RNF-107.4 | RF-67 | Pagos | backend/src/pagos/index.js:136 | Inspección | registrar('PAGO_RECHAZADO', …) | Implementado y verificado (inspección) |
+| RNF-107.5 | RF-67 | API GraphQL | backend/src/graphql/resolvers.js:237 | Inspección | registrar('PRODUCTO_CREADO', …) | Implementado y verificado (inspección) |
+| RNF-107.6 | RF-67 | API GraphQL | backend/src/graphql/resolvers.js:164, 253 | Inspección | registrar('PRODUCTO_ACTUALIZADO', …) al guardar el producto y al guardar la ficha | Implementado y verificado (inspección) |
+| RNF-107.7 | RF-67 | API GraphQL | backend/src/graphql/resolvers.js:264 | Inspección | registrar('PRODUCTO_ELIMINADO', …) | Implementado y verificado (inspección) |
+| RNF-107.8 | RF-67 | Registro | backend/src/rutas/registro.js:36; rutas/oauth.js:68 | Inspección | registrar('REGISTRO', …) con correo y con Google | Implementado y verificado (inspección) |
+| RNF-107.9 | RF-67 | OAuth 2.0 | backend/src/rutas/oauth.js:31 | Inspección, PM-26 | registrar('LOGIN_FALLIDO', …) con la IP en datos | Implementado y verificado (inspección) |
+| RNF-107.10 | RF-67 | OAuth 2.0 | backend/src/rutas/oauth.js:68 | Inspección | registrar('LOGIN_GOOGLE', …) | Implementado y verificado (inspección) |
+| RNF-107.11 | RF-67 | Recuperación de contraseña | backend/src/rutas/recuperar.js:82 | Inspección | registrar('PASSWORD_RESTABLECIDO', …) | Implementado y verificado (inspección) |
+| RNF-107.12 | RF-67 | Correo | backend/src/correo/enviar.js:62 | Inspección | registrar('CORREO_ENVIADO', …) | Implementado y verificado (inspección) |
+| RNF-107.13 | RF-67 | Correo | backend/src/correo/enviar.js:59 | Inspección | registrar('CORREO_FALLIDO', …) | Implementado y verificado (inspección) |
+| RNF-107.14 | RF-67 | API GraphQL | backend/src/graphql/resolvers.js:180 | Inspección | registrar('RESENA', …) | Implementado y verificado (inspección) |
+| RNF-107.15 | RF-67 | Prefactura CFDI | backend/src/cfdi/index.js:82 | Inspección | registrar('RESPALDO_FALLIDO', …) | Implementado y verificado (inspección) |
+| RNF-108 | RF-67 | MongoDB | backend/src/mongo/conexion.js:15, 30 | Inspección | Índice TTL sobre fecha con expireAfterSeconds = 90 × 24 × 3600. | Implementado y verificado (inspección) |
+| RNF-109 | RF-68 | Correo | backend/src/correo/avisos.js:64-66 | Inspección, PA-12 | Solo se avisa de los productos con antes > STOCK_MINIMO y después ≤ STOCK_MINIMO; correo.test.js:39-44 prueba el contenido del aviso. | Implementado y verificado (inspección) |
+| RNF-110 | RF-68, RF-70 | Correo | backend/src/correo/avisos.js:9 | Inspección | STOCK_MINIMO = Number(process.env.STOCK_MINIMO) \|\| 5. | Implementado y verificado (inspección) |
+| RNF-111 | Todo el sistema | Login con Google | backend/src/mongo/conexion.js; correo/enviar.js; google.js; mapas.js:92-94 | PA-18, PA-13, PA-28, PA-44 | Sin MongoDB, Resend o Google, la función se apaga sin error (mongo.test.js:54-60, correo.test.js:47-61, google.test.js:55); si HERE falla, la dirección se guarda (mapas.test.js:81). Cloudinary y Mouser solo por inspección; no hay prueba de punta a punta con un servicio caído. | Parcial |
+| RNF-112 | Todo el sistema | Servidor | backend/src/index.js:88 | PA-64, PM-35 | GET / responde 200 {"ok":true,"version":"<commit>"} (paso «Levantar el backend» del CI y medición del 25-11-2026). | Implementado y verificado (prueba automatizada) |
+| RNF-113 | Todo el sistema | Configuración | .gitignore:2; backend/.gitignore:2; render.yaml (sync: false); backend/.env.example | Inspección | .env está ignorado; cada secreto de render.yaml tiene sync: false y aparece vacío o de ejemplo en .env.example (incluido GOOGLE_CLIENT_ID desde v2.0). | Implementado y verificado (inspección) |
+| RNF-114 | Todo el sistema | Configuración | backend/.env.example:2, 62 | PM-33 | http:// del backend y del frontend responde 301 a https://; DATABASE_URL usa sslmode=verify-full y MongoDB usa mongodb+srv (TLS). | Implementado y verificado (demostración ejecutada) |
+| RNF-115 | Todo el sistema | Servidor | backend/src/index.js:37, 81 | PM-34 | Una petición preflight desde un origen ajeno no recibe Access-Control-Allow-Origin; desde https://voltrixf.netlify.app sí. | Implementado y verificado (demostración ejecutada) |
+| RNF-116 | Todo el sistema | Base de datos | backend/migraciones/*.sql | PA-63, Inspección | Las migraciones solo usan CREATE … IF NOT EXISTS, ADD COLUMN IF NOT EXISTS o bloques condicionales; ninguna usa DROP de datos. | Implementado y verificado (prueba automatizada) |
+| RNF-117 | Todo el sistema | Base de datos | backend/migraciones/*.sql; backend/scripts/migrar.mjs | PA-63 | En CI se aplican las 10 migraciones sobre una base creada con db.sql, que ya las contiene, y terminan sin error (✔ 001 a 010). | Implementado y verificado (prueba automatizada) |
+| RNF-118 | — | — | — | — | Retirado en v2.0: es un requisito del proceso de desarrollo, no del producto; pasa a la restricción RD-20. | Retirado |
+| RNF-119 | RF-06, RF-07 | Catálogo | frontend/src/pages/buscar.astro; backend/src/catalogo.js | PM-30 | Percentil 95 de 20 solicitudes ≤ 2 s. Medido con curl el 25-11-2026: p50 0.67 s, p95 0.86 s, máx. 2.12 s. Falta medir en el navegador. | Parcial |
+| RNF-120 | Todo el sistema | Frontend | frontend/src/styles/global.css | PM-31 | En cada página, document.documentElement.scrollWidth ≤ 360 con una ventana de 360 px. | Implementado, verificación pendiente |
+| RNF-121 | Todo el sistema | API GraphQL | backend/src/graphql/resolvers.js (errorDeNegocio) | Inspección | Todos los mensajes de errorDeNegocio, de registro.js y de recuperar.js están en español. | Implementado y verificado (inspección) |
+| RNF-122 | Todo el sistema | Dirección | backend/src/graphql/resolvers.js:585-603; direccion.js:24-28 | Inspección | Cada mensaje de validación nombra el dato a corregir (por ejemplo, «El código postal debe tener 5 dígitos.»). | Implementado y verificado (inspección) |
+| RNF-123 | Todo el sistema | Frontend | frontend/ | PM-32 | El proceso de compra se completa en modo de prueba en Chrome, Firefox, Edge y Safari sin errores en la consola. | Implementado, verificación pendiente |
+
+## Restricciones de diseño con verificación
+
+| RD | Antes | Implementación | Verificación | Evidencia |
+|---|---|---|---|---|
+| RD-19 | RNF-99 | backend/src/mouser.js:19 | PA-38 | mouser.test.js:103: la misma búsqueda repetida no genera una segunda petición a Mouser. |
+| RD-20 | RNF-118 | .github/workflows/ci.yml | PA-61 a PA-65 | El job desplegar declara needs: [backend, frontend]; en la corrida 44674351700 los tres jobs terminaron en éxito. |
