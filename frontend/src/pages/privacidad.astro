@@ -1,0 +1,11 @@
+---
+// Aviso de privacidad (desviación D-10 del SRS). El texto vive en un solo lugar:
+// src/aviso-privacidad.md.
+import Base from '../layouts/Base.astro'
+import { Content } from '../aviso-privacidad.md'
+---
+<Base titulo="Aviso de privacidad" descripcion="Qué datos personales trata Voltrix, para qué y cómo ejercer sus derechos.">
+  <article class="panel aviso-privacidad">
+    <Content />
+  </article>
+</Base>
