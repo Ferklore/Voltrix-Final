@@ -108,6 +108,21 @@ export async function copiarImagenRemota(url, permitida = () => false) {
   return cuerpo.secure_url
 }
 
+// Peso de una imagen de Cloudinary antes de ligarla a un producto (RNF-92).
+// Cloudinary no permite limitar bytes en una subida firmada, así que el
+// servidor lo revisa al guardar el producto con un HEAD a la imagen.
+// ponytail: si Cloudinary no responde o no manda Content-Length se acepta, y
+// el archivo que se rechaza queda en Cloudinary; borrarlo con la Admin API si importa.
+export async function imagenExcedePeso(url) {
+  if (!url?.startsWith('https://res.cloudinary.com/')) return false
+  try {
+    const res = await fetch(url, { method: 'HEAD', signal: AbortSignal.timeout(10_000) })
+    return Number(res.headers.get('content-length')) > MAX_BYTES_IMAGEN
+  } catch {
+    return false
+  }
+}
+
 // Solo URLs nuestras o de Cloudinary para la imagen de un producto: evita
 // guardar enlaces a sitios de terceros (rastreo) o esquemas raros.
 export function imagenPermitida(url) {

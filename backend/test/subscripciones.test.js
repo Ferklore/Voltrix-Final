@@ -84,6 +84,10 @@ test('solo un ADMIN puede suscribirse y recibe los cambios de pedidos en vivo', 
 
   // Producto 2: api.test.js corre en paralelo y mide el stock del 3.
   // Producto 2: api.test.js corre en paralelo y mide el stock del 3.
+  // RNF-82: el aviso llega en menos de 2 s. Se mide desde antes de enviar la
+  // mutación, así que el tiempo incluye también la ida y vuelta de la petición.
+  const MAX_MS = 2000
+  let inicio = Date.now()
   const { data } = await gql('mutation { crearPedido(items: [{ productoId: 2, cantidad: 1 }]) { id } }', registro.access_token)
   const id = data.crearPedido.id
   // Pueden colarse pedidos de otras pruebas: solo cuentan los de este.
@@ -95,9 +99,16 @@ test('solo un ADMIN puede suscribirse y recibe los cambios de pedidos en vivo', 
   }
   let e = await delPedido()
   assert.deepEqual([e.tipo, e.pedido.status], ['NUEVO', 'PENDIENTE'])
+  let ms = Date.now() - inicio
+  t.diagnostic(`RNF-82 pedido nuevo: ${ms} ms`)
+  assert.ok(ms < MAX_MS, `pedido nuevo: ${ms} ms`)
 
+  inicio = Date.now()
   await gql(`mutation { cancelarPedido(id: ${id}) { id } }`, registro.access_token)
   e = await delPedido()
   assert.deepEqual([e.tipo, e.pedido.status], ['ACTUALIZADO', 'CANCELADO'])
+  ms = Date.now() - inicio
+  t.diagnostic(`RNF-82 cambio de estado: ${ms} ms`)
+  assert.ok(ms < MAX_MS, `cambio de estado: ${ms} ms`)
 
 })

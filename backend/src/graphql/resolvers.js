@@ -18,7 +18,7 @@ import { direccionDePedido, historialPedido } from '../mongo/pedidos.js'
 import { listarKits, recomendarKit } from '../kits/recomendador.js'
 import { buscarProductos } from '../catalogo.js'
 import { GOOGLE_CLIENT_ID } from '../google.js'
-import { cloudinaryConfigurado, copiarImagenRemota, firmaSubidaImagen, imagenPermitida } from '../cloudinary.js'
+import { cloudinaryConfigurado, copiarImagenRemota, firmaSubidaImagen, imagenExcedePeso, imagenPermitida } from '../cloudinary.js'
 import { ErrorMouser, buscarEnMouser, esImagenDeMouser, mouserConfigurado } from '../mouser.js'
 
 // Error de negocio: el código le dice al front que puede mostrar el mensaje.
@@ -228,6 +228,7 @@ export const resolvers = {
     crearProducto: async (_, { datos }, ctx) => {
       requiereAdmin(ctx)
       const { nombre, precio, imagen, especificaciones, categoriaId, stock, precioAnterior, claveProdServ } = validarProducto(datos)
+      await revisarPesoImagen(imagen)
       const producto = await uno(
         `INSERT INTO producto (nombre, precio, imagen, especificaciones, stock, categoria_id, precio_anterior, clave_prod_serv)
          VALUES ($1, $2, $3, $4, $5, $6, $7, coalesce($8, '01010101')) RETURNING *`,
@@ -241,6 +242,7 @@ export const resolvers = {
     actualizarProducto: async (_, { id, datos }, ctx) => {
       requiereAdmin(ctx)
       const { nombre, precio, imagen, especificaciones, categoriaId, stock, precioAnterior, claveProdServ } = validarProducto(datos)
+      await revisarPesoImagen(imagen)
       const producto = await uno(
         `UPDATE producto
             SET nombre = $1, precio = $2, imagen = $3, especificaciones = $4, stock = $5, categoria_id = $6,
@@ -594,6 +596,10 @@ function validarProducto(datos) {
     throw errorDeNegocio('La clave SAT del producto son 8 dígitos (p. ej. 01010101).', 'PRODUCTO_INVALIDO')
   }
   return { ...datos, precioAnterior: precioAnterior ?? null, claveProdServ: clave }
+}
+
+async function revisarPesoImagen(imagen) {
+  if (await imagenExcedePeso(imagen?.trim())) throw errorDeNegocio('La imagen pesa más de 5 MB.', 'PRODUCTO_INVALIDO')
 }
 
 function validarCategoria(datos) {
